@@ -7,6 +7,7 @@ interface ProviderStatus {
 
 interface Props {
   providers: ProviderStatus[];
+  layout?: "horizontal" | "vertical";
 }
 
 const PROVIDER_LABELS: Record<Provider, string> = {
@@ -15,22 +16,22 @@ const PROVIDER_LABELS: Record<Provider, string> = {
   gemini: "Gemini",
 };
 
-export default function ProgressTracker({ providers }: Props) {
+export default function ProgressTracker({ providers, layout = "vertical" }: Props) {
   return (
-    <div className="flex items-center justify-center gap-6 glass-tier-1 px-6 py-4 rounded-2xl">
+    <div className={layout === "vertical" ? "flex flex-col gap-3" : "flex items-center gap-4"}>
       {providers.map(({ provider, status }) => (
-        <div key={provider} className="flex items-center gap-2">
+        <div key={provider} className="flex items-center gap-2.5">
           {status === "pending" && (
-            <span className="w-3 h-3 rounded-full bg-black/10" />
+            <span className="w-2.5 h-2.5 rounded-full bg-black/10" />
           )}
           {status === "loading" && (
-            <span className="w-3 h-3 rounded-full bg-[--accent-cyan-bright] animate-pulse-glow glow-dot" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[--accent-cyan-bright] animate-pulse-glow glow-dot" />
           )}
           {status === "done" && (
-            <span className="w-3 h-3 rounded-full bg-[--accent-cyan-bright] glow-dot" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[--accent-cyan-bright] glow-dot" />
           )}
           {status === "failed" && (
-            <span className="w-3 h-3 rounded-full bg-orange-500 glow-dot" />
+            <span className="w-2.5 h-2.5 rounded-full bg-orange-500 glow-dot" />
           )}
           <span
             className={`text-sm font-medium ${
