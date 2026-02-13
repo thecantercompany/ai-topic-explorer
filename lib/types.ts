@@ -26,8 +26,14 @@ export interface AIResponse {
   rawText: string;
   entities: ExtractedEntities;
   citations: Citation[];
+  keyThemes: KeyTheme[];
   model: string;
   usage?: TokenUsage[];
+}
+
+export interface KeyTheme {
+  phrase: string;
+  relevance: number;
 }
 
 export interface WordFrequency {
@@ -65,6 +71,7 @@ export interface AnalysisResult {
     gemini?: string;
   };
   combinedWordFrequencies: WordFrequency[];
+  combinedKeyThemes: KeyTheme[];
   combinedEntities: CombinedEntities;
   combinedCitations: CombinedCitation[];
   tokenUsage?: TokenUsage[];

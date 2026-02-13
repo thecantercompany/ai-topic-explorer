@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import WordCloud from "@/components/WordCloud";
+import KeyThemes from "@/components/KeyThemes";
 import WordContextModal from "@/components/WordContextModal";
 import EntityList from "@/components/EntityList";
 import CitationList from "@/components/CitationList";
@@ -11,6 +12,7 @@ import Footer from "@/components/Footer";
 import { findWordContext, type WordContextMatch } from "@/lib/analysis/word-context";
 import type {
   WordCloudWord,
+  KeyTheme,
   CombinedEntities,
   CombinedCitation,
   Provider,
@@ -19,6 +21,7 @@ import type {
 interface Props {
   topic: string;
   wordCloudData: WordCloudWord[];
+  keyThemes: KeyTheme[];
   entities: CombinedEntities;
   citations: CombinedCitation[];
   providerStatuses: { provider: Provider; status: "done" | "failed" }[];
@@ -28,7 +31,7 @@ interface Props {
 }
 
 const SECTIONS = [
-  { id: "key-terms", label: "Key Terms" },
+  { id: "key-themes", label: "Key Themes" },
   { id: "entities", label: "Entities" },
   { id: "citations", label: "Citations" },
 ];
@@ -36,6 +39,7 @@ const SECTIONS = [
 export default function ResultsContent({
   topic,
   wordCloudData,
+  keyThemes,
   entities,
   citations,
   providerStatuses,
@@ -201,12 +205,16 @@ export default function ResultsContent({
               </h2>
             </div>
 
-            {/* Key Terms */}
-            <section id="key-terms" className="mb-10 scroll-mt-20">
+            {/* Key Themes */}
+            <section id="key-themes" className="mb-10 scroll-mt-20">
               <h2 className="text-xl font-bold text-[--text-primary] mb-4">
-                Key Terms
+                Key Themes
               </h2>
-              <WordCloud words={wordCloudData} onWordClick={handleWordClick} />
+              {keyThemes.length > 0 ? (
+                <KeyThemes themes={keyThemes} onThemeClick={handleWordClick} />
+              ) : (
+                <WordCloud words={wordCloudData} onWordClick={handleWordClick} />
+              )}
             </section>
 
             {/* Entities */}

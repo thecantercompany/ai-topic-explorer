@@ -1,0 +1,45 @@
+"use client";
+
+import type { KeyTheme } from "@/lib/types";
+
+interface Props {
+  themes: KeyTheme[];
+  onThemeClick?: (phrase: string) => void;
+}
+
+const sizeClasses: Record<number, string> = {
+  5: "text-base px-4 py-2",
+  4: "text-sm px-3.5 py-1.5",
+  3: "text-sm px-3 py-1.5",
+  2: "text-xs px-3 py-1",
+  1: "text-xs px-2.5 py-1",
+};
+
+export default function KeyThemes({ themes, onThemeClick }: Props) {
+  if (themes.length === 0) {
+    return (
+      <div className="glass-tier-2 rounded-2xl p-8 text-center">
+        <p className="text-[--text-tertiary]">No key themes identified.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass-tier-2 rounded-2xl p-6">
+      <div className="flex flex-wrap gap-2.5 justify-center">
+        {themes.map((theme) => (
+          <button
+            key={theme.phrase}
+            onClick={() => onThemeClick?.(theme.phrase)}
+            className={`pill-interactive rounded-full font-medium cursor-pointer ${sizeClasses[theme.relevance] || sizeClasses[3]}`}
+          >
+            {theme.phrase}
+          </button>
+        ))}
+      </div>
+      <p className="mt-3 text-xs text-[--text-tertiary] text-center">
+        Click any theme to see it in context
+      </p>
+    </div>
+  );
+}

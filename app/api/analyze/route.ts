@@ -10,11 +10,13 @@ import {
 } from "@/lib/analysis/word-frequency";
 import { mergeEntities } from "@/lib/analysis/merge-entities";
 import { mergeCitations } from "@/lib/analysis/merge-citations";
+import { mergeKeyThemes } from "@/lib/analysis/merge-themes";
 import type {
   AIResponse,
   AnalysisResult,
   Provider,
   WordFrequency,
+  KeyTheme,
   ExtractedEntities,
   Citation,
   TokenUsage,
@@ -45,6 +47,7 @@ function mergeProviderResponses(responses: AIResponse[]): AIResponse {
   const rawTexts = responses.map((r) => r.rawText);
   const allEntities = responses.map((r) => r.entities);
   const allCitations = responses.flatMap((r) => r.citations);
+  const allKeyThemes = responses.map((r) => r.keyThemes);
   const allUsage = responses.flatMap((r) => r.usage || []);
 
   return {
@@ -52,6 +55,7 @@ function mergeProviderResponses(responses: AIResponse[]): AIResponse {
     rawText: rawTexts.join("\n\n"),
     entities: mergeEntities(...allEntities),
     citations: allCitations,
+    keyThemes: mergeKeyThemes(...allKeyThemes),
     model: responses[0].model,
     usage: allUsage,
   };
@@ -171,6 +175,7 @@ export async function POST(request: NextRequest) {
   };
   const errors: AnalysisResult["errors"] = {};
   const wordFreqLists: WordFrequency[][] = [];
+  const keyThemeLists: KeyTheme[][] = [];
   const entityLists: ExtractedEntities[] = [];
   const citationsByProvider: { provider: Provider; citations: Citation[] }[] =
     [];
@@ -183,6 +188,7 @@ export async function POST(request: NextRequest) {
     if (result.status === "fulfilled") {
       responses[provider] = result.value;
       wordFreqLists.push(calculateWordFrequency(result.value.rawText, topicWordSet));
+      keyThemeLists.push(result.value.keyThemes);
       entityLists.push(result.value.entities);
       citationsByProvider.push({
         provider,
@@ -219,6 +225,7 @@ export async function POST(request: NextRequest) {
 
   // Merge results (topic words already excluded during frequency calculation)
   const combinedWordFrequencies = mergeWordFrequencies(...wordFreqLists);
+  const combinedKeyThemes = mergeKeyThemes(...keyThemeLists);
   const combinedEntities = mergeEntities(...entityLists);
   const combinedCitations = mergeCitations(citationsByProvider);
 
@@ -228,6 +235,7 @@ export async function POST(request: NextRequest) {
     responses,
     errors,
     combinedWordFrequencies,
+    combinedKeyThemes,
     combinedEntities,
     combinedCitations,
     tokenUsage: allUsage,

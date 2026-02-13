@@ -311,7 +311,7 @@ export default function Home() {
               </h1>
               <p className="text-lg text-[--text-secondary] mb-10 max-w-lg leading-relaxed">
                 Enter any topic and see what AI knows about it. We query
-                multiple models and combine their responses into word clouds,
+                multiple models and combine their responses into key themes,
                 entities, and citations.
               </p>
 
@@ -421,11 +421,11 @@ export default function Home() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-[--text-primary] mb-1">3. Word Cloud Generation</h3>
+                <h3 className="font-semibold text-[--text-primary] mb-1">3. Key Theme Extraction</h3>
                 <p>
-                  All responses are tokenized and filtered — stop words and the topic terms
-                  themselves are removed to avoid bias. The top 100 most frequent terms are
-                  visualized as an interactive word cloud. Click any word to see it in context.
+                  AI identifies the most important themes from its analysis as short, meaningful
+                  phrases. These are displayed as clickable pills — tap any theme to see the
+                  exact sentences where it appears in context.
                 </p>
               </div>
 

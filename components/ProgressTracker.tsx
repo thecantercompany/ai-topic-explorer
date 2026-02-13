@@ -22,16 +22,16 @@ export default function ProgressTracker({ providers, layout = "vertical" }: Prop
       {providers.map(({ provider, status }) => (
         <div key={provider} className="flex items-center gap-2.5">
           {status === "pending" && (
-            <span className="w-2.5 h-2.5 rounded-full bg-black/10" />
+            <span className="w-3 h-3 rounded-full bg-black/15" />
           )}
           {status === "loading" && (
-            <span className="w-2.5 h-2.5 rounded-full bg-[--accent-cyan-bright] animate-pulse-glow glow-dot" />
+            <span className="w-3 h-3 rounded-full bg-[--accent-cyan-bright] animate-pulse-glow glow-dot" style={{ color: 'var(--accent-cyan-bright)' }} />
           )}
           {status === "done" && (
-            <span className="w-2.5 h-2.5 rounded-full bg-[--accent-cyan-bright] glow-dot" />
+            <span className="w-3 h-3 rounded-full bg-[--accent-cyan-bright] glow-dot" style={{ color: 'var(--accent-cyan-bright)' }} />
           )}
           {status === "failed" && (
-            <span className="w-2.5 h-2.5 rounded-full bg-orange-500 glow-dot" />
+            <span className="w-3 h-3 rounded-full bg-orange-500 glow-dot" style={{ color: '#f97316' }} />
           )}
           <span
             className={`text-sm font-medium ${

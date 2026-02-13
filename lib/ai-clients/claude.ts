@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { AIResponse, ExtractedEntities, Citation, TokenUsage } from "@/lib/types";
+import type { AIResponse, ExtractedEntities, Citation, KeyTheme, TokenUsage } from "@/lib/types";
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -19,11 +19,15 @@ After your analysis, output a JSON block (and nothing else after it) in exactly 
   },
   "citations": [
     {"title": "Source Title", "url": "https://example.com/article"}
+  ],
+  "keyThemes": [
+    {"phrase": "carbon tax policy", "relevance": 5},
+    {"phrase": "water contamination risks", "relevance": 4}
   ]
 }
 \`\`\`
 
-For entities, only include proper nouns (specific people and named organizations). Provide Wikipedia or official website URLs where possible. For citations, list 5-10 real sources you would recommend for learning more about this topic.`;
+For entities, only include proper nouns (specific people and named organizations). Provide Wikipedia or official website URLs where possible. For citations, list 5-10 real sources you would recommend for learning more about this topic. For keyThemes, identify 15-20 key themes as short 2-4 word phrases that capture the most important specific concepts in your analysis. These should be meaningful and specific (e.g. "methane flaring regulations" not "environmental issues"). Score each 1-5 for relevance to the topic.`;
 
 interface ParsedJSON {
   entities?: {
@@ -31,11 +35,13 @@ interface ParsedJSON {
     organizations?: { name: string; url?: string }[];
   };
   citations?: { title: string; url: string }[];
+  keyThemes?: { phrase: string; relevance: number }[];
 }
 
 function parseStructuredData(text: string): {
   entities: ExtractedEntities;
   citations: Citation[];
+  keyThemes: KeyTheme[];
 } {
   const fallback = {
     entities: {
@@ -43,6 +49,7 @@ function parseStructuredData(text: string): {
       organizations: [],
     },
     citations: [],
+    keyThemes: [] as KeyTheme[],
   };
 
   try {
@@ -56,6 +63,7 @@ function parseStructuredData(text: string): {
           organizations: parsed.entities?.organizations || [],
         },
         citations: parsed.citations || [],
+        keyThemes: parsed.keyThemes || [],
       };
     }
 
@@ -69,6 +77,7 @@ function parseStructuredData(text: string): {
           organizations: parsed.entities?.organizations || [],
         },
         citations: parsed.citations || [],
+        keyThemes: parsed.keyThemes || [],
       };
     }
   } catch (e) {
@@ -114,13 +123,14 @@ export async function analyzeWithClaude(query: string): Promise<AIResponse> {
     .map((block) => block.text)
     .join("\n");
 
-  const { entities, citations } = parseStructuredData(responseText);
+  const { entities, citations, keyThemes } = parseStructuredData(responseText);
 
   return {
     provider: "claude",
     rawText: extractRawText(responseText),
     entities,
     citations,
+    keyThemes,
     model: "claude-sonnet-4-5-20250929",
     usage: [usage],
   };

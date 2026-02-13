@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { toWordCloudData, topicToWords } from "@/lib/analysis/word-frequency";
-import type { AnalysisResult, Provider } from "@/lib/types";
+import type { AnalysisResult, KeyTheme, Provider } from "@/lib/types";
 import ResultsContent from "./ResultsContent";
 
 interface Props {
@@ -25,6 +25,7 @@ export default async function ResultsPage({ params }: Props) {
     (f) => !topicWords.has(f.word)
   );
   const wordCloudData = toWordCloudData(filteredFrequencies);
+  const keyThemes: KeyTheme[] = result.combinedKeyThemes || [];
 
   // Determine which providers succeeded/failed
   const providerStatuses: { provider: Provider; status: "done" | "failed" }[] =
@@ -76,6 +77,7 @@ export default async function ResultsPage({ params }: Props) {
     <ResultsContent
       topic={result.topic}
       wordCloudData={wordCloudData}
+      keyThemes={keyThemes}
       entities={result.combinedEntities}
       citations={result.combinedCitations}
       providerStatuses={providerStatuses}
