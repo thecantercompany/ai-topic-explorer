@@ -23,7 +23,14 @@
 }
 
 body {
-  background: var(--bg-base);
+  background:
+    radial-gradient(ellipse 130% 80% at 5% 40%, rgba(8, 145, 178, 0.14) 0%, transparent 55%),
+    radial-gradient(ellipse 110% 70% at 95% 10%, rgba(124, 58, 237, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse 100% 80% at 75% 95%, rgba(6, 182, 212, 0.10) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 60% at 25% 85%, rgba(124, 58, 237, 0.08) 0%, transparent 45%),
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(8, 145, 178, 0.05) 0%, transparent 65%),
+    var(--bg-base);
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
@@ -75,16 +82,18 @@ body {
 /* Hero mesh background */
 .hero-mesh-bg {
   background:
-    radial-gradient(ellipse at 20% 50%, rgba(8, 145, 178, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(124, 58, 237, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, rgba(6, 182, 212, 0.04) 0%, transparent 50%);
+    radial-gradient(ellipse 120% 80% at 10% 40%, rgba(8, 145, 178, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 70% at 90% 15%, rgba(124, 58, 237, 0.13) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 80% at 70% 90%, rgba(6, 182, 212, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 60% at 30% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 50% at 50% 50%, rgba(8, 145, 178, 0.05) 0%, transparent 70%);
 }
 
 /* Keyframes */
 @keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% { opacity: 0.85; }
+  50% { opacity: 1; }
+  100% { opacity: 0.85; }
 }
 
 @keyframes pulse-glow {
@@ -105,7 +114,6 @@ body {
 
 .animate-gradient-shift {
   animation: gradient-shift 8s ease infinite;
-  background-size: 200% 200%;
 }
 
 .animate-pulse-glow {
@@ -222,4 +230,10 @@ html {
 
 .animate-float-keyword-alt {
   animation: float-keyword-alt 7s ease-in-out infinite;
+}
+
+/* Packed bubble word cloud */
+@keyframes bubble-fade-in {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
 }

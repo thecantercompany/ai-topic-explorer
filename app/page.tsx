@@ -290,11 +290,8 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col relative">
-      {/* Full-page mesh bg */}
-      <div className="absolute inset-0 hero-mesh-bg animate-gradient-shift pointer-events-none" aria-hidden="true" />
-
-      <main className="relative flex-1 flex flex-col">
+    <div className="min-h-screen flex flex-col">
+      <main className="flex-1 flex flex-col">
         {/* Split hero section */}
         <div className="flex-1 flex items-center">
 
