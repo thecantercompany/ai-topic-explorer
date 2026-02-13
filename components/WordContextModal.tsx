@@ -20,7 +20,7 @@ function highlightWord(text: string, word: string): React.ReactNode[] {
   const parts = text.split(regex);
   return parts.map((part, i) =>
     regex.test(part) ? (
-      <mark key={i} className="bg-green-200 text-green-900 rounded px-0.5">
+      <mark key={i} className="bg-[--accent-cyan-muted] text-[--accent-cyan] rounded px-0.5 font-medium">
         {part}
       </mark>
     ) : (
@@ -48,15 +48,15 @@ export default function WordContextModal({ word, matches, onClose }: Props) {
         if (e.target === overlayRef.current) onClose();
       }}
     >
-      <div className="bg-white rounded-2xl shadow-xl border border-green-100 max-w-2xl w-full max-h-[80vh] flex flex-col">
+      <div className="glass-tier-3 rounded-2xl shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-green-100">
-          <h3 className="text-lg font-bold text-green-900">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-black/5">
+          <h3 className="text-lg font-bold text-[--text-primary]">
             &ldquo;{word}&rdquo; in context
           </h3>
           <button
             onClick={onClose}
-            className="text-green-400 hover:text-green-700 transition-colors text-2xl leading-none"
+            className="text-[--text-tertiary] hover:text-[--text-primary] transition-colors text-2xl leading-none"
             aria-label="Close"
           >
             &times;
@@ -66,7 +66,7 @@ export default function WordContextModal({ word, matches, onClose }: Props) {
         {/* Body */}
         <div className="overflow-y-auto px-6 py-4 space-y-6">
           {matches.length === 0 ? (
-            <p className="text-green-500 text-sm text-center py-4">
+            <p className="text-[--text-tertiary] text-sm text-center py-4">
               No context found for this word.
             </p>
           ) : (
@@ -83,7 +83,7 @@ export default function WordContextModal({ word, matches, onClose }: Props) {
                   {match.excerpts.map((excerpt, i) => (
                     <li
                       key={i}
-                      className="text-sm text-green-800 leading-relaxed pl-3 border-l-2 border-green-200"
+                      className="text-sm text-[--text-secondary] leading-relaxed pl-3 border-l-2 border-[--accent-cyan]/30"
                     >
                       {highlightWord(excerpt, word)}
                     </li>

@@ -71,12 +71,15 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       <main className="flex-1">
         {/* Hero Section */}
-        <div className="flex flex-col items-center justify-center px-4 pt-24 pb-12">
-          <div className="max-w-2xl w-full text-center">
-            <h1 className="text-4xl font-bold text-green-900 mb-4">
+        <div className="relative flex flex-col items-center justify-center px-4 pt-28 pb-16">
+          {/* Animated mesh gradient background */}
+          <div className="absolute inset-0 hero-mesh-bg animate-gradient-shift pointer-events-none" aria-hidden="true" />
+
+          <div className="relative max-w-2xl w-full text-center">
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-[--text-primary] via-[--accent-cyan] to-[--accent-violet] bg-clip-text text-transparent">
               AI Topic Explorer
             </h1>
-            <p className="text-lg text-green-700 mb-12 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg text-[--text-secondary] mb-12 max-w-2xl mx-auto leading-relaxed">
               Enter any topic and see what AI knows about it. We query multiple
               AI models and combine their responses into word clouds, named
               entities, and citations.
@@ -90,17 +93,17 @@ export default function Home() {
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   placeholder='Enter a topic... (e.g., "oil and gas in New Mexico")'
-                  className="w-full px-6 py-4 text-lg rounded-2xl border-2 border-green-200 bg-white text-green-900 placeholder-green-400 focus:outline-none focus:border-green-500 focus:ring-4 focus:ring-green-100 transition-all"
+                  className="w-full px-6 py-4 text-lg rounded-2xl bg-white/60 border border-black/8 text-[--text-primary] placeholder-[--text-tertiary] focus:outline-none focus:border-[--accent-cyan]/50 focus:ring-2 focus:ring-[--accent-cyan]/15 focus:bg-white/80 backdrop-blur-xl transition-all duration-300"
                   disabled={isLoading}
                 />
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full px-8 py-4 text-lg font-semibold text-white bg-green-500 rounded-2xl hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="w-full px-8 py-4 text-lg font-semibold text-white bg-gradient-to-r from-[--accent-cyan] to-[--accent-violet] rounded-2xl hover:shadow-[0_0_25px_rgba(6,182,212,0.3)] focus:outline-none focus:ring-2 focus:ring-[--accent-cyan]/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300"
                 >
                   {isLoading ? (
                     <span className="flex items-center justify-center gap-3">
-                      <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span className="w-5 h-5 border-2 border-white/80 border-t-transparent rounded-full animate-spin" />
                       Analyzing...
                     </span>
                   ) : (
@@ -109,19 +112,19 @@ export default function Home() {
                 </button>
               </div>
               {error && (
-                <p className="mt-4 text-red-600 font-medium">{error}</p>
+                <p className="mt-4 text-red-500 font-medium">{error}</p>
               )}
             </form>
 
             {/* Example Topics */}
-            <div className="text-sm text-green-600">
+            <div className="text-sm text-[--text-secondary]">
               <p className="mb-3">Try an example:</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {EXAMPLE_TOPICS.map((example) => (
                   <button
                     key={example}
                     onClick={() => setTopic(example)}
-                    className="px-4 py-2 bg-white border border-green-200 rounded-full hover:border-green-500 hover:text-green-700 transition-all text-sm"
+                    className="px-4 py-2 bg-white/50 border border-black/6 rounded-full hover:border-[--accent-cyan]/40 hover:text-[--accent-cyan] hover:bg-[--accent-cyan-muted] transition-all duration-200 text-sm"
                     disabled={isLoading}
                   >
                     {example}
@@ -136,7 +139,7 @@ export default function Home() {
         <MethodologySection />
       </main>
 
-      <div className="mt-16">
+      <div className="mt-20">
         <Footer />
       </div>
     </div>
