@@ -24,7 +24,7 @@ interface Props {
   keyThemes: KeyTheme[];
   entities: CombinedEntities;
   citations: CombinedCitation[];
-  providerStatuses: { provider: Provider; status: "done" | "failed" }[];
+  providerStatuses: { provider: Provider; status: "done" | "failed" | "unavailable" }[];
   partialFailureMessage: string | null;
   analysisId: string;
   providerTexts: Record<string, string>;

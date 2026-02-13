@@ -227,31 +227,28 @@ html {
     transform: translate(0, 0) rotate(0deg);
     opacity: 0;
   }
-  8% {
-    opacity: 1;
+  5% {
+    opacity: 0.9;
   }
-  25% {
-    transform: translate(var(--drift-x), calc(var(--drift-y) * -0.6)) rotate(var(--drift-rotate));
+  33% {
+    transform: translate(var(--drift-x), var(--drift-y)) rotate(var(--drift-rotate));
   }
-  50% {
-    transform: translate(calc(var(--drift-x) * -0.4), var(--drift-y)) rotate(calc(var(--drift-rotate) * -0.8));
+  66% {
+    transform: translate(calc(var(--drift-x) * -0.6), calc(var(--drift-y) * -0.5)) rotate(calc(var(--drift-rotate) * -0.7));
   }
-  75% {
-    transform: translate(calc(var(--drift-x) * 0.7), calc(var(--drift-y) * -0.3)) rotate(calc(var(--drift-rotate) * 0.5));
-  }
-  92% {
-    opacity: 1;
+  95% {
+    opacity: 0.9;
   }
   100% {
     transform: translate(0, 0) rotate(0deg);
-    opacity: 0.85;
+    opacity: 0;
   }
 }
 
 .animate-float-drift {
-  --drift-x: 15px;
-  --drift-y: 15px;
-  --drift-rotate: 2deg;
+  --drift-x: 8px;
+  --drift-y: 8px;
+  --drift-rotate: 1deg;
   animation: float-drift ease-in-out infinite;
   will-change: transform;
 }

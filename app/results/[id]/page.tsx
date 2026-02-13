@@ -27,17 +27,17 @@ export default async function ResultsPage({ params }: Props) {
   const wordCloudData = toWordCloudData(filteredFrequencies);
   const keyThemes: KeyTheme[] = result.combinedKeyThemes || [];
 
-  // Determine which providers succeeded/failed
-  const providerStatuses: { provider: Provider; status: "done" | "failed" }[] =
-    [];
+  // Determine which providers succeeded/failed/unavailable
   const allProviders: Provider[] = ["claude", "openai", "gemini"];
-  for (const provider of allProviders) {
-    if (result.responses[provider]) {
-      providerStatuses.push({ provider, status: "done" });
-    } else if (result.errors[provider]) {
-      providerStatuses.push({ provider, status: "failed" });
-    }
-  }
+  const providerStatuses: { provider: Provider; status: "done" | "failed" | "unavailable" }[] =
+    allProviders.map((provider) => {
+      if (result.responses[provider]) {
+        return { provider, status: "done" };
+      } else if (result.errors[provider]) {
+        return { provider, status: "failed" };
+      }
+      return { provider, status: "unavailable" };
+    });
 
   // Build partial failure message
   const failedProviders = providerStatuses

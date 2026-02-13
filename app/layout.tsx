@@ -13,10 +13,31 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = "https://aitopicexplorer.app";
+const title = "AI Topic Explorer";
+const description =
+  "Enter any topic and see what Claude, GPT, and Gemini collectively know about it. Key themes, named entities, and AI-suggested citations — all in one place.";
+
 export const metadata: Metadata = {
-  title: "AI Topic Explorer",
-  description:
-    "Enter any topic and see what Claude, GPT, and Gemini collectively know about it. Visualized through word clouds, named entities, and AI-suggested citations.",
+  title,
+  description,
+  metadataBase: new URL(siteUrl),
+  openGraph: {
+    title,
+    description,
+    url: siteUrl,
+    siteName: title,
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+  },
+  other: {
+    "theme-color": "#F8F6F3",
+  },
 };
 
 export default function RootLayout({

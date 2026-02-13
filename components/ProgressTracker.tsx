@@ -2,7 +2,7 @@ import type { Provider } from "@/lib/types";
 
 interface ProviderStatus {
   provider: Provider;
-  status: "pending" | "loading" | "done" | "failed";
+  status: "pending" | "loading" | "done" | "failed" | "unavailable";
 }
 
 interface Props {
@@ -28,23 +28,31 @@ export default function ProgressTracker({ providers, layout = "vertical" }: Prop
             <span className="w-3 h-3 rounded-full bg-[--accent-cyan-bright] animate-pulse-glow glow-dot" style={{ color: 'var(--accent-cyan-bright)' }} />
           )}
           {status === "done" && (
-            <span className="w-3 h-3 rounded-full bg-[--accent-cyan-bright] glow-dot" style={{ color: 'var(--accent-cyan-bright)' }} />
+            <span className="w-3 h-3 rounded-full bg-emerald-500 glow-dot" style={{ color: '#10b981' }} />
           )}
           {status === "failed" && (
             <span className="w-3 h-3 rounded-full bg-orange-500 glow-dot" style={{ color: '#f97316' }} />
           )}
+          {status === "unavailable" && (
+            <span className="w-3 h-3 rounded-full bg-red-400/60" />
+          )}
           <span
             className={`text-sm font-medium ${
               status === "done"
-                ? "text-[--accent-cyan]"
+                ? "text-emerald-600"
                 : status === "failed"
                   ? "text-orange-600"
-                  : status === "loading"
-                    ? "text-[--text-secondary]"
-                    : "text-[--text-tertiary]"
+                  : status === "unavailable"
+                    ? "text-red-400"
+                    : status === "loading"
+                      ? "text-[--text-secondary]"
+                      : "text-[--text-tertiary]"
             }`}
           >
             {PROVIDER_LABELS[provider]}
+            {status === "unavailable" && (
+              <span className="text-xs ml-1 opacity-60">(coming soon)</span>
+            )}
           </span>
         </div>
       ))}

@@ -303,11 +303,16 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       <main className="flex-1 flex flex-col">
         {/* Split hero section */}
-        <div className="flex-1 flex items-center">
+        <div className="flex-1 flex items-center relative">
 
-          <div className="relative w-full max-w-7xl mx-auto px-6 md:px-10 grid grid-cols-1 md:grid-cols-12 gap-12 md:min-h-[calc(100vh-80px)] md:items-center">
+          {/* RIGHT — Floating Keywords Visual (full right half of viewport) */}
+          <div className="hidden md:block absolute top-0 right-0 w-1/2 h-full overflow-hidden">
+            <FloatingKeywords />
+          </div>
+
+          <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-10 md:min-h-[calc(100vh-80px)] md:flex md:items-center pointer-events-none">
             {/* LEFT — Search */}
-            <div className="col-span-1 md:col-span-7 py-16 md:py-0">
+            <div className="w-full md:w-1/2 py-16 md:py-0 pointer-events-auto">
               <h1
                 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
                 style={{
@@ -352,8 +357,8 @@ export default function Home() {
                       )}
                     </button>
                     {showWaitTooltip && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 px-4 py-2 rounded-xl bg-[--bg-secondary] border border-black/8 shadow-lg text-sm text-[--text-secondary] whitespace-nowrap animate-fade-in">
-                        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-[--bg-secondary] border-l border-t border-black/8" />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 px-4 py-2.5 rounded-xl bg-[--text-primary] shadow-lg shadow-black/15 text-sm font-medium text-white whitespace-nowrap animate-fade-in">
+                        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-[--text-primary]" />
                         Hang tight — we&apos;re almost done!
                       </div>
                     )}
@@ -388,10 +393,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* RIGHT — Floating Keywords Visual */}
-            <div className="hidden md:flex col-span-1 md:col-span-5 items-center justify-center">
-              <FloatingKeywords />
-            </div>
           </div>
         </div>
       </main>

@@ -77,18 +77,55 @@ interface FloatingWord {
   colorIndex: number;
 }
 
+// Pre-defined slots spread across the container to guarantee no overlaps.
+// Each slot is a {top%, left%} region. Words are assigned to shuffled slots.
+const SLOTS: { top: number; left: number }[] = [
+  // Top band
+  { top: 3, left: 5 },
+  { top: 5, left: 35 },
+  { top: 2, left: 65 },
+  { top: 8, left: 85 },
+  // Upper quarter
+  { top: 16, left: 10 },
+  { top: 18, left: 50 },
+  { top: 14, left: 78 },
+  // Upper-middle
+  { top: 30, left: 3 },
+  { top: 28, left: 35 },
+  { top: 32, left: 68 },
+  // Middle (avoid centre where the orb sits)
+  { top: 44, left: 5 },
+  { top: 42, left: 75 },
+  { top: 46, left: 88 },
+  // Lower-middle
+  { top: 56, left: 8 },
+  { top: 58, left: 42 },
+  { top: 55, left: 80 },
+  // Lower quarter
+  { top: 70, left: 3 },
+  { top: 68, left: 35 },
+  { top: 72, left: 65 },
+  { top: 66, left: 88 },
+  // Bottom band
+  { top: 84, left: 8 },
+  { top: 82, left: 40 },
+  { top: 86, left: 72 },
+  { top: 90, left: 20 },
+];
+
 function generateWords(): FloatingWord[] {
-  const picked = shufflePick(WORDS, 18);
+  const picked = shufflePick(WORDS, SLOTS.length);
+  const slots = shufflePick(SLOTS, SLOTS.length);
   return picked.map((text, i) => ({
     text,
-    top: randomBetween(3, 90),
-    left: randomBetween(3, 85),
-    size: Math.round(randomBetween(12, 22)),
-    duration: randomBetween(5, 12),
-    delay: randomBetween(0, 4),
-    driftX: randomBetween(8, 30) * (Math.random() > 0.5 ? 1 : -1),
-    driftY: randomBetween(8, 25) * (Math.random() > 0.5 ? 1 : -1),
-    rotate: randomBetween(1, 4) * (Math.random() > 0.5 ? 1 : -1),
+    top: slots[i].top + randomBetween(-2, 2),
+    left: slots[i].left + randomBetween(-3, 3),
+    size: Math.round(randomBetween(12, 20)),
+    duration: randomBetween(18, 30),
+    delay: randomBetween(0, 6),
+    driftX: randomBetween(4, 12) * (Math.random() > 0.5 ? 1 : -1),
+    driftY: randomBetween(4, 10) * (Math.random() > 0.5 ? 1 : -1),
+    rotate: randomBetween(0.5, 2) * (Math.random() > 0.5 ? 1 : -1),
     colorIndex: i,
   }));
 }
@@ -97,14 +134,7 @@ export default function FloatingKeywords() {
   const words = useMemo(() => generateWords(), []);
 
   return (
-    <div className="relative w-full h-full min-h-[400px] overflow-hidden">
-      {/* Central glass orb */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full glass-tier-2 flex items-center justify-center animate-pulse-glow">
-        <span className="text-2xl font-bold bg-gradient-to-r from-[--accent-cyan] to-[--accent-violet] bg-clip-text text-transparent">
-          AI
-        </span>
-      </div>
-
+    <div className="relative w-full h-full overflow-hidden">
       {/* Floating keyword pills */}
       {words.map((w) => (
         <div
