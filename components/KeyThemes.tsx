@@ -26,12 +26,12 @@ export default function KeyThemes({ themes, onThemeClick }: Props) {
 
   return (
     <div className="glass-tier-2 rounded-2xl p-6">
-      <div className="flex flex-wrap gap-2.5 justify-center">
+      <div className="flex flex-wrap gap-2.5 justify-center overflow-hidden">
         {themes.map((theme) => (
           <button
             key={theme.phrase}
             onClick={() => onThemeClick?.(theme.phrase)}
-            className={`pill-interactive rounded-full font-medium cursor-pointer ${sizeClasses[theme.relevance] || sizeClasses[3]}`}
+            className={`pill-interactive rounded-full font-medium cursor-pointer max-w-full truncate ${sizeClasses[theme.relevance] || sizeClasses[3]}`}
           >
             {theme.phrase}
           </button>

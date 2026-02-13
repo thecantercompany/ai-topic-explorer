@@ -29,19 +29,19 @@ export default function CitationList({ citations }: Props) {
     <div className="glass-tier-2 rounded-2xl p-6">
       <ul className="space-y-4">
         {citations.map((citation, idx) => (
-          <li key={idx} className="flex flex-col gap-1.5">
-            <div className="flex items-start gap-2">
+          <li key={idx} className="flex flex-col gap-1.5 min-w-0">
+            <div className="flex items-start gap-2 min-w-0">
               <a
                 href={citation.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[--text-primary] underline decoration-black/15 hover:text-[--accent-cyan] hover:decoration-[--accent-cyan]/40 text-sm font-medium leading-snug transition-colors"
+                className="text-[--text-primary] underline decoration-black/15 hover:text-[--accent-cyan] hover:decoration-[--accent-cyan]/40 text-sm font-medium leading-snug transition-colors break-words"
               >
                 {citation.title}
               </a>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-[--text-tertiary] truncate max-w-md">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-xs text-[--text-tertiary] truncate">
                 {citation.url}
               </span>
               <div className="flex gap-1">

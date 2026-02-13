@@ -196,7 +196,7 @@ export default function ResultsContent({
         </aside>
 
         {/* Main content */}
-        <div className="flex-1 py-8 px-4 sm:px-8 lg:px-12">
+        <div className="flex-1 py-8 px-4 sm:px-8 lg:px-12 min-w-0 overflow-hidden">
           <div className="max-w-4xl mx-auto">
             {/* Desktop topic heading (hidden on mobile since it's in the header) */}
             <div className="hidden lg:block mb-8">
