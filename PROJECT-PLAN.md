@@ -2,93 +2,109 @@
 
 ## Project Overview
 
-A web application that queries multiple AI systems with a topic and visualizes what each AI "knows" about that topic. Input a subject like "oil and gas in New Mexico," see word clouds and entity analysis showing what each AI emphasizes, which organizations it mentions, and how responses differ across systems.
+A web application that queries multiple AI systems (Claude, GPT, Gemini) with a user-provided topic and visualizes what AI collectively knows about it. Results are displayed through a combined word cloud, linked named entities, and AI-suggested citations. Results are stored in Postgres and shareable via unique URLs.
 
 ## Tech Stack
 
-- **Framework:** Next.js
+- **Framework:** Next.js 16 (App Router, TypeScript, Tailwind CSS)
 - **Hosting:** Railway
-- **AI APIs:** Claude (Anthropic), GPT (OpenAI), Gemini (Google)
-- **Text Analysis:** Client-side JavaScript for word frequency and entity extraction
+- **Database:** PostgreSQL (Railway) via Prisma 7
+- **AI APIs:** Claude Haiku (Anthropic), GPT-4o-mini (OpenAI), Gemini Flash (Google)
+- **Word Cloud:** @cp949/react-wordcloud (React 19 compatible)
+- **Text Analysis:** Hybrid — AI extracts entities/citations, client-side JS counts word frequency
 
 ---
 
-## Phase 0: Planning
+## Key Design Decisions
 
-Define the core requirements and scope. Decide which AI services to include at launch (Claude, OpenAI, Gemini). Determine what visualizations you want—word clouds, entity lists, theme comparisons, or all three. Establish naming, branding, and any design preferences. Confirm your API accounts are set up and you have keys ready. Agree on the tech stack. Create a simple project brief document that captures these decisions so we're aligned before any code gets written.
+- **Combined visualizations** — one word cloud and one entity list merging all AI responses (not per-AI)
+- **Citations section** — AIs provide source URLs; shown as clickable links with provider badges and disclaimer
+- **Wait-for-all reveal** — progress tracker shows per-AI status, results appear only when all have responded or failed
+- **Shareable results** — stored in Postgres, accessible via unique URLs like `/results/abc123`
+- **Budget-friendly models** — Claude Haiku, GPT-4o-mini, Gemini Flash to keep costs low
+- **Cost guardrails** — rate limiting (10/hour per IP), 1000 token cap per AI call, kill switch env var
 
-**Deliverables:**
-- Project brief document with confirmed requirements
-- API accounts created and keys obtained
-- Design/branding decisions documented
+---
+
+## Build Order
+
+1. **Phase 1:** Foundation — Next.js, homepage with methodology section, Prisma/Postgres, Railway deploy
+2. **Phase 2:** AI integration — Claude only first, API route with rate limiting + kill switch, save to DB
+3. **Phase 3:** Text analysis — word frequency counting, entity merging, citation merging
+4. **Phase 4:** Visualization — results page, word cloud, entities, citations, share button, progress tracker
+5. **Phase 5:** Add OpenAI + Gemini — plug in remaining providers (auto-detected via env vars)
 
 ---
 
 ## Phase 1: Foundation
 
-Build the basic application structure. Set up the Next.js project with a clean folder organization. Create the simple input interface—a text field for entering a topic and a button to submit. Build the API route scaffolding that will handle requests. Get the app deploying to Railway with placeholder content so you have a live URL to test against throughout development.
-
-**Deliverables:**
-- Next.js project initialized with clean structure
-- Basic input UI functional
-- App deployed to Railway with live URL
+- Next.js project with TypeScript, Tailwind, App Router
+- Prisma 7 with PostgreSQL adapter (`@prisma/adapter-pg`)
+- Homepage: hero section with input form, example topic chips, methodology "How It Works" section, attribution footer
+- Railway deployment with standalone output
 
 ---
 
-## Phase 2: AI Integration
+## Phase 2: AI Integration (Claude First)
 
-Connect to each AI service one at a time. Start with Claude since you already have API access. Add OpenAI integration. Add Gemini integration. Each integration should accept the topic, send an appropriate prompt, and return the raw response text. Build error handling for rate limits, timeouts, and failed requests. Test with a handful of topics to confirm all three services are responding correctly.
-
-**Deliverables:**
-- Claude API integration working
-- OpenAI API integration working
-- Gemini API integration working
-- Error handling implemented
-- All three services tested and returning responses
+- Type definitions for AIResponse, AnalysisResult, entities, citations, word frequencies
+- Claude Haiku client wrapper with structured prompt requesting analysis + JSON (entities with URLs + citations)
+- API route: kill switch check → rate limit check → auto-detect configured providers → parallel AI calls via `Promise.allSettled` → merge results → save to Postgres → return `{ id, ...result }`
+- Rate limiting: 10 analyses/hour per IP, in-memory
 
 ---
 
 ## Phase 3: Text Analysis
 
-Process the AI responses into useful data. Extract key terms and calculate word frequency. Identify named entities—organizations, people, locations. Detect recurring themes or concepts across responses. Structure this data in a consistent format that the frontend can consume for visualization.
-
-**Deliverables:**
-- Word frequency extraction working
-- Named entity identification working
-- Structured data format defined and implemented
+- Word frequency: stop-word filtering, frequency counting, merging across providers
+- Entity merging: deduplication by normalized name, preserves URLs
+- Citation merging: deduplication by URL, tracks which providers suggested each, sorts by multi-provider consensus
 
 ---
 
 ## Phase 4: Visualization
 
-Display the results in a meaningful way. Build word cloud components for each AI's response. Create comparison views showing differences between what each AI emphasizes. Add entity lists or tables showing which organizations, people, or places each AI mentions. Make it visually clear and easy to scan.
-
-**Deliverables:**
-- Word cloud components for each AI
-- Comparison view across AIs
-- Entity lists/tables
-- Polished, scannable UI
+- Results page loads from Postgres by ID (works for fresh analysis AND shared links)
+- Combined word cloud (neutral blue/slate palette)
+- Entity list with clickable links (People, Organizations, Locations, Concepts)
+- Citation list with provider badges, disclaimer, and AEO Checker callout
+- Progress tracker showing per-AI status
+- Share button copies URL to clipboard
+- Partial failure banner when some AIs fail
 
 ---
 
-## Phase 5: Polish and Iteration
+## Phase 5: Add OpenAI + Gemini
 
-Refine based on real use. Add the ability to save or export results. Improve the prompts sent to each AI if responses aren't useful enough. Add loading states, better error messages, and UI refinements. Test with a broader range of topics to find edge cases. Document how to use it and how to maintain it.
+- Install `openai` and `@google/generative-ai` SDKs
+- Create client wrappers following same pattern as Claude
+- Add API keys to env — API route auto-detects and activates them
+- Test parallel execution and merging with multiple providers
 
-**Deliverables:**
-- Export/save functionality
-- Refined prompts
-- UI polish (loading states, error messages)
-- User documentation
+---
+
+## Cost & Abuse Guardrails
+
+- **Rate limiting:** 10/hour per IP (in-memory)
+- **Token cap:** 1000 max tokens per AI call
+- **Kill switch:** `ANALYSIS_ENABLED` env var
+- **Estimated cost:** ~$0.01 per analysis, ~$30/month worst case
+
+---
+
+## Post-MVP Roadmap
+
+### Brand/AEO Mode
+- "Is your brand mentioned by AI?" — enter a brand name, see what AIs know
+- Brand recognition score, associated keywords, cited pages
+- Funnel to AEO Checker
 
 ---
 
 ## Prerequisites
 
-Before starting Phase 1, ensure you have:
-
-- [ ] Anthropic API account and key
+- [x] Anthropic API account and key
 - [ ] OpenAI API account and key
 - [ ] Google AI (Gemini) API account and key
-- [ ] Railway account
-- [ ] GitHub repository created for the project
+- [ ] Railway account with Postgres database
+- [ ] GitHub repository

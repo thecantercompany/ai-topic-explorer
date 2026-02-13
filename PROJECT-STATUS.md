@@ -1,50 +1,65 @@
 # AI Topic Explorer - Project Status
 
-**Last Updated:** January 18, 2026
+**Last Updated:** February 12, 2026
 
-## Current Status: Not Started
+## Current Status: Development (Phases 1-4 Complete)
 
-Project plan is complete. Ready to begin Phase 0 (Planning) when prerequisites are in place.
+Core application built and compiling. Ready for database connection, testing, and deployment.
 
 ---
 
-## To-Do List
-
-### Phase 0: Planning
-- [ ] Create project brief document with confirmed requirements
-- [ ] Set up Anthropic API account and obtain key
-- [ ] Set up OpenAI API account and obtain key
-- [ ] Set up Google AI (Gemini) API account and obtain key
-- [ ] Set up Railway account
-- [ ] Create GitHub repository for the project
-- [ ] Document design/branding decisions
+## Completed
 
 ### Phase 1: Foundation
-- [ ] Initialize Next.js project with clean structure
-- [ ] Build basic input UI (text field + submit button)
-- [ ] Create API route scaffolding
-- [ ] Deploy to Railway with live URL
+- [x] Next.js 16 project initialized (TypeScript, Tailwind, App Router)
+- [x] Prisma 7 with PostgreSQL adapter and Analysis schema
+- [x] Homepage with input form, example topic chips, methodology section
+- [x] Footer with attribution (Built by The Canter Company)
+- [x] Environment variables configured (.env, .env.example)
+- [x] next.config.ts set to standalone output for Railway
 
-### Phase 2: AI Integration
-- [ ] Build Claude API integration
-- [ ] Build OpenAI API integration
-- [ ] Build Gemini API integration
-- [ ] Implement error handling (rate limits, timeouts, failures)
-- [ ] Test all three services
+### Phase 2: AI Integration (Claude Only)
+- [x] TypeScript type definitions (AIResponse, AnalysisResult, entities, citations)
+- [x] Claude Haiku client wrapper with structured prompt + JSON extraction
+- [x] API route with kill switch, rate limiting, parallel execution, DB save
+- [x] In-memory rate limiter (10/hour per IP)
 
 ### Phase 3: Text Analysis
-- [ ] Build word frequency extraction
-- [ ] Build named entity identification
-- [ ] Define and implement structured data format
+- [x] Word frequency extraction with stop-word filtering
+- [x] Word frequency merging across providers
+- [x] Entity deduplication by normalized name
+- [x] Citation deduplication by URL with provider tracking
 
 ### Phase 4: Visualization
-- [ ] Build word cloud components for each AI
-- [ ] Create comparison view across AIs
-- [ ] Build entity lists/tables
-- [ ] Polish UI for readability
+- [x] Results page loading from Postgres by ID
+- [x] Combined word cloud component (@cp949/react-wordcloud)
+- [x] Entity list with clickable links (People, Orgs, Locations, Concepts)
+- [x] Citation list with provider badges and AEO Checker callout
+- [x] Progress tracker component
+- [x] Share button (copy URL to clipboard)
+- [x] Partial failure banner
+- [x] "Analyze Another Topic" navigation
 
-### Phase 5: Polish and Iteration
-- [ ] Add export/save functionality
-- [ ] Refine AI prompts
-- [ ] Add loading states and error messages
-- [ ] Create user documentation
+---
+
+## To-Do
+
+### Deployment
+- [ ] Create GitHub repository
+- [ ] Provision Railway Postgres database
+- [ ] Set environment variables in Railway (ANTHROPIC_API_KEY, DATABASE_URL, ANALYSIS_ENABLED)
+- [ ] Deploy to Railway
+- [ ] Run Prisma migrations against Railway Postgres
+- [ ] Test end-to-end with live API
+
+### Phase 5: Add OpenAI + Gemini
+- [ ] Obtain OpenAI API key
+- [ ] Obtain Google AI (Gemini) API key
+- [ ] Install openai and @google/generative-ai SDKs
+- [ ] Create OpenAI client wrapper
+- [ ] Create Gemini client wrapper
+- [ ] Add API keys to Railway env vars
+- [ ] Test with all three providers running in parallel
+
+### Post-MVP
+- [ ] Brand/AEO Mode ("Is your brand mentioned by AI?")
