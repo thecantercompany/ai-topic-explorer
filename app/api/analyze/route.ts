@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { analyzeWithClaude } from "@/lib/ai-clients/claude";
+import { expandQuery } from "@/lib/analysis/query-expansion";
 import {
   calculateWordFrequency,
   mergeWordFrequencies,
+  topicToWords,
 } from "@/lib/analysis/word-frequency";
 import { mergeEntities } from "@/lib/analysis/merge-entities";
 import { mergeCitations } from "@/lib/analysis/merge-citations";
@@ -15,9 +17,10 @@ import type {
   WordFrequency,
   ExtractedEntities,
   Citation,
+  TokenUsage,
 } from "@/lib/types";
 
-type AnalyzeFn = (topic: string) => Promise<AIResponse>;
+type AnalyzeFn = (query: string) => Promise<AIResponse>;
 
 function getConfiguredProviders(): { provider: Provider; analyze: AnalyzeFn }[] {
   const providers: { provider: Provider; analyze: AnalyzeFn }[] = [];
@@ -35,6 +38,23 @@ function getConfiguredProviders(): { provider: Provider; analyze: AnalyzeFn }[] 
   // }
 
   return providers;
+}
+
+/** Merge multiple AIResponses from subtopic queries into a single AIResponse per provider */
+function mergeProviderResponses(responses: AIResponse[]): AIResponse {
+  const rawTexts = responses.map((r) => r.rawText);
+  const allEntities = responses.map((r) => r.entities);
+  const allCitations = responses.flatMap((r) => r.citations);
+  const allUsage = responses.flatMap((r) => r.usage || []);
+
+  return {
+    provider: responses[0].provider,
+    rawText: rawTexts.join("\n\n"),
+    entities: mergeEntities(...allEntities),
+    citations: allCitations,
+    model: responses[0].model,
+    usage: allUsage,
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -93,9 +113,54 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Run all configured AI calls in parallel
-  const results = await Promise.allSettled(
-    providers.map(({ analyze }) => analyze(topic))
+  // Step 1: Query expansion — generate subtopic queries
+  const allUsage: TokenUsage[] = [];
+  let expandedQueries: string[];
+  try {
+    const expansion = await expandQuery(topic);
+    expandedQueries = expansion.queries;
+    if (expansion.usage.inputTokens > 0) {
+      allUsage.push(expansion.usage);
+    }
+    console.log(
+      `[Query Expansion] "${topic}" → ${expandedQueries.length} queries:`,
+      expandedQueries
+    );
+  } catch (e) {
+    console.warn("Query expansion failed, using original topic:", e);
+    expandedQueries = [topic];
+  }
+
+  // Step 2: Run all queries × all providers in parallel
+  // For each provider, run all expanded queries, then merge into one AIResponse
+  const providerResults = await Promise.allSettled(
+    providers.map(async ({ provider, analyze }) => {
+      const queryResults = await Promise.allSettled(
+        expandedQueries.map((query) => analyze(query))
+      );
+
+      const successful = queryResults
+        .filter(
+          (r): r is PromiseFulfilledResult<AIResponse> =>
+            r.status === "fulfilled"
+        )
+        .map((r) => r.value);
+
+      const failed = queryResults.filter((r) => r.status === "rejected");
+      if (failed.length > 0) {
+        console.warn(
+          `[${provider}] ${failed.length}/${expandedQueries.length} subtopic queries failed`
+        );
+      }
+
+      if (successful.length === 0) {
+        throw new Error(
+          `All ${expandedQueries.length} subtopic queries failed for ${provider}`
+        );
+      }
+
+      return mergeProviderResponses(successful);
+    })
   );
 
   // Process results
@@ -109,23 +174,39 @@ export async function POST(request: NextRequest) {
   const entityLists: ExtractedEntities[] = [];
   const citationsByProvider: { provider: Provider; citations: Citation[] }[] =
     [];
+  const topicWordSet = topicToWords(topic);
 
   for (let i = 0; i < providers.length; i++) {
     const { provider } = providers[i];
-    const result = results[i];
+    const result = providerResults[i];
 
     if (result.status === "fulfilled") {
       responses[provider] = result.value;
-      wordFreqLists.push(calculateWordFrequency(result.value.rawText));
+      wordFreqLists.push(calculateWordFrequency(result.value.rawText, topicWordSet));
       entityLists.push(result.value.entities);
       citationsByProvider.push({
         provider,
         citations: result.value.citations,
       });
+      // Collect token usage from all subtopic calls
+      if (result.value.usage) {
+        allUsage.push(...result.value.usage);
+      }
     } else {
       errors[provider] = result.reason?.message || "Analysis failed";
     }
   }
+
+  // Log total usage
+  const totalInput = allUsage.reduce((sum, u) => sum + u.inputTokens, 0);
+  const totalOutput = allUsage.reduce((sum, u) => sum + u.outputTokens, 0);
+  const expansionUsage = allUsage.filter((u) => u.purpose === "expansion");
+  const analysisUsage = allUsage.filter((u) => u.purpose === "analysis");
+  console.log(
+    `[Token Usage] Total: ${totalInput} in / ${totalOutput} out | ` +
+      `Expansion: ${expansionUsage.reduce((s, u) => s + u.inputTokens + u.outputTokens, 0)} | ` +
+      `Analysis: ${analysisUsage.reduce((s, u) => s + u.inputTokens + u.outputTokens, 0)}`
+  );
 
   // Check if all providers failed
   const successCount = Object.values(responses).filter(Boolean).length;
@@ -136,18 +217,20 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Merge results
+  // Merge results (topic words already excluded during frequency calculation)
   const combinedWordFrequencies = mergeWordFrequencies(...wordFreqLists);
   const combinedEntities = mergeEntities(...entityLists);
   const combinedCitations = mergeCitations(citationsByProvider);
 
   const analysisResult: AnalysisResult = {
     topic,
+    expandedQueries,
     responses,
     errors,
     combinedWordFrequencies,
     combinedEntities,
     combinedCitations,
+    tokenUsage: allUsage,
   };
 
   // Save to database

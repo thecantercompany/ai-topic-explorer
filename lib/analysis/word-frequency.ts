@@ -24,12 +24,12 @@ const STOP_WORDS = new Set([
   "include", "includes", "included", "make", "makes", "made",
 ]);
 
-export function calculateWordFrequency(text: string): WordFrequency[] {
+export function calculateWordFrequency(text: string, topicWords?: Set<string>): WordFrequency[] {
   const words = text
     .toLowerCase()
     .replace(/[^\w\s]/g, " ")
     .split(/\s+/)
-    .filter((word) => word.length > 2 && !STOP_WORDS.has(word));
+    .filter((word) => word.length > 2 && !STOP_WORDS.has(word) && !(topicWords?.has(word)));
 
   const frequencyMap = new Map<string, number>();
   for (const word of words) {
@@ -57,6 +57,16 @@ export function mergeWordFrequencies(
     .map(([word, count]) => ({ word, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 100);
+}
+
+export function topicToWords(topic: string): Set<string> {
+  return new Set(
+    topic
+      .toLowerCase()
+      .replace(/[^\w\s]/g, " ")
+      .split(/\s+/)
+      .filter((w) => w.length > 0)
+  );
 }
 
 export function toWordCloudData(frequencies: WordFrequency[]): WordCloudWord[] {

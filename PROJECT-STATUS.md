@@ -19,10 +19,13 @@ Core application built and compiling. Ready for database connection, testing, an
 - [x] next.config.ts set to standalone output for Railway
 
 ### Phase 2: AI Integration (Claude Only)
-- [x] TypeScript type definitions (AIResponse, AnalysisResult, entities, citations)
+- [x] TypeScript type definitions (AIResponse, AnalysisResult, entities, citations, TokenUsage)
 - [x] Claude Haiku client wrapper with structured prompt + JSON extraction
 - [x] API route with kill switch, rate limiting, parallel execution, DB save
 - [x] In-memory rate limiter (10/hour per IP)
+- [x] Query expansion — Haiku generates 3-4 subtopic queries before analysis for broader coverage
+- [x] Separate API key (`ANTHROPIC_EXPANSION_API_KEY`) for expansion usage tracking
+- [x] Token usage logging (input/output per call, tagged expansion vs. analysis)
 
 ### Phase 3: Text Analysis
 - [x] Word frequency extraction with stop-word filtering
@@ -47,7 +50,7 @@ Core application built and compiling. Ready for database connection, testing, an
 ### Deployment
 - [ ] Create GitHub repository
 - [ ] Provision Railway Postgres database
-- [ ] Set environment variables in Railway (ANTHROPIC_API_KEY, DATABASE_URL, ANALYSIS_ENABLED)
+- [ ] Set environment variables in Railway (ANTHROPIC_API_KEY, ANTHROPIC_EXPANSION_API_KEY, DATABASE_URL, ANALYSIS_ENABLED)
 - [ ] Deploy to Railway
 - [ ] Run Prisma migrations against Railway Postgres
 - [ ] Test end-to-end with live API

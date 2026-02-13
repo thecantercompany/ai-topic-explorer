@@ -68,7 +68,7 @@ const features = [
   {
     title: "Named Entities",
     description:
-      "People, organizations, locations, and concepts identified by AI — each linked for easy research.",
+      "People and organizations identified by AI — each linked for easy research.",
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
@@ -92,66 +92,66 @@ export default function MethodologySection() {
   return (
     <section className="w-full max-w-4xl mx-auto mt-20 px-4">
       {/* How It Works */}
-      <h2 className="text-2xl font-bold text-green-900 text-center mb-8">
+      <h2 className="text-2xl font-bold text-[--text-primary] text-center mb-8">
         How It Works
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
         {steps.map((step) => (
           <div
             key={step.number}
-            className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 text-center"
+            className="glass-tier-2 glass-hover rounded-2xl p-6 text-center"
           >
-            <div className="w-12 h-12 rounded-full bg-green-500 text-white flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[--accent-cyan] to-[--accent-violet] text-white flex items-center justify-center mx-auto mb-4">
               {step.icon}
             </div>
-            <h3 className="font-semibold text-green-900 mb-2">{step.title}</h3>
-            <p className="text-sm text-green-700">{step.description}</p>
+            <h3 className="font-semibold text-[--text-primary] mb-2">{step.title}</h3>
+            <p className="text-sm text-[--text-secondary]">{step.description}</p>
           </div>
         ))}
       </div>
 
       {/* What You Get */}
-      <h2 className="text-2xl font-bold text-green-900 text-center mb-8">
+      <h2 className="text-2xl font-bold text-[--text-primary] text-center mb-8">
         What You Get
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
         {features.map((feature) => (
           <div
             key={feature.title}
-            className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 text-center"
+            className="glass-tier-2 glass-hover rounded-2xl p-6 text-center"
           >
-            <div className="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 rounded-full bg-[--accent-cyan-muted] text-[--accent-cyan] flex items-center justify-center mx-auto mb-4">
               {feature.icon}
             </div>
-            <h3 className="font-semibold text-green-900 mb-2">{feature.title}</h3>
-            <p className="text-sm text-green-700">{feature.description}</p>
+            <h3 className="font-semibold text-[--text-primary] mb-2">{feature.title}</h3>
+            <p className="text-sm text-[--text-secondary]">{feature.description}</p>
           </div>
         ))}
       </div>
 
       {/* Platforms */}
-      <h2 className="text-2xl font-bold text-green-900 text-center mb-8">
+      <h2 className="text-2xl font-bold text-[--text-primary] text-center mb-8">
         Powered By
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
         {platforms.map((platform) => (
           <div
             key={platform.name}
-            className="bg-white rounded-2xl shadow-sm border border-green-100 p-6 text-center"
+            className="glass-tier-2 glass-hover rounded-2xl p-6 text-center"
           >
             <span
               className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-3 ${platform.color}`}
             >
               {platform.name}
             </span>
-            <p className="text-xs text-green-500 mb-2">{platform.provider}</p>
-            <p className="text-sm text-green-700">{platform.description}</p>
+            <p className="text-xs text-[--text-tertiary] mb-2">{platform.provider}</p>
+            <p className="text-sm text-[--text-secondary]">{platform.description}</p>
           </div>
         ))}
       </div>
 
       {/* Disclaimer */}
-      <p className="text-xs text-green-500 text-center max-w-2xl mx-auto">
+      <p className="text-xs text-[--text-tertiary] text-center max-w-2xl mx-auto">
         AI responses may contain inaccuracies. Citations and links are
         AI-suggested and may not be valid. This tool shows what AI models report
         — it does not verify facts.

@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { AIResponse, ExtractedEntities, Citation } from "@/lib/types";
+import type { AIResponse, ExtractedEntities, Citation, TokenUsage } from "@/lib/types";
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -15,9 +15,7 @@ After your analysis, output a JSON block (and nothing else after it) in exactly 
 {
   "entities": {
     "people": [{"name": "Person Name", "url": "https://en.wikipedia.org/wiki/Person_Name"}],
-    "organizations": [{"name": "Org Name", "url": "https://example.com"}],
-    "locations": [{"name": "Place Name", "url": "https://en.wikipedia.org/wiki/Place_Name"}],
-    "concepts": [{"name": "Concept Name", "url": "https://en.wikipedia.org/wiki/Concept_Name"}]
+    "organizations": [{"name": "Org Name", "url": "https://example.com"}]
   },
   "citations": [
     {"title": "Source Title", "url": "https://example.com/article"}
@@ -25,14 +23,12 @@ After your analysis, output a JSON block (and nothing else after it) in exactly 
 }
 \`\`\`
 
-For entities, provide Wikipedia or official website URLs where possible. For citations, list 5-10 real sources you would recommend for learning more about this topic.`;
+For entities, only include proper nouns (specific people and named organizations). Provide Wikipedia or official website URLs where possible. For citations, list 5-10 real sources you would recommend for learning more about this topic.`;
 
 interface ParsedJSON {
   entities?: {
     people?: { name: string; url?: string }[];
     organizations?: { name: string; url?: string }[];
-    locations?: { name: string; url?: string }[];
-    concepts?: { name: string; url?: string }[];
   };
   citations?: { title: string; url: string }[];
 }
@@ -45,8 +41,6 @@ function parseStructuredData(text: string): {
     entities: {
       people: [],
       organizations: [],
-      locations: [],
-      concepts: [],
     },
     citations: [],
   };
@@ -60,8 +54,6 @@ function parseStructuredData(text: string): {
         entities: {
           people: parsed.entities?.people || [],
           organizations: parsed.entities?.organizations || [],
-          locations: parsed.entities?.locations || [],
-          concepts: parsed.entities?.concepts || [],
         },
         citations: parsed.citations || [],
       };
@@ -75,8 +67,6 @@ function parseStructuredData(text: string): {
         entities: {
           people: parsed.entities?.people || [],
           organizations: parsed.entities?.organizations || [],
-          locations: parsed.entities?.locations || [],
-          concepts: parsed.entities?.concepts || [],
         },
         citations: parsed.citations || [],
       };
@@ -93,17 +83,27 @@ function extractRawText(text: string): string {
   return text.replace(/```json[\s\S]*?```/, "").trim();
 }
 
-export async function analyzeWithClaude(topic: string): Promise<AIResponse> {
+export async function analyzeWithClaude(query: string): Promise<AIResponse> {
   const message = await client.messages.create({
-    model: "claude-haiku-4-5-20251001",
+    model: "claude-sonnet-4-5-20250929",
     max_tokens: 4096,
     messages: [
       {
         role: "user",
-        content: PROMPT_TEMPLATE(topic),
+        content: PROMPT_TEMPLATE(query),
       },
     ],
   });
+
+  const usage: TokenUsage = {
+    inputTokens: message.usage.input_tokens,
+    outputTokens: message.usage.output_tokens,
+    purpose: "analysis",
+  };
+
+  console.log(
+    `[Analysis: Claude] Query: "${query.slice(0, 60)}..." — Tokens — input: ${usage.inputTokens}, output: ${usage.outputTokens}`
+  );
 
   if (message.stop_reason === "max_tokens") {
     console.warn("Claude response was truncated due to max_tokens limit");
@@ -121,6 +121,7 @@ export async function analyzeWithClaude(topic: string): Promise<AIResponse> {
     rawText: extractRawText(responseText),
     entities,
     citations,
-    model: "claude-haiku-4-5-20251001",
+    model: "claude-sonnet-4-5-20250929",
+    usage: [usage],
   };
 }

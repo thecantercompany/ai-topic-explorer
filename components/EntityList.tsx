@@ -7,8 +7,6 @@ interface Props {
 const CATEGORIES: { key: keyof CombinedEntities; label: string }[] = [
   { key: "people", label: "People" },
   { key: "organizations", label: "Organizations" },
-  { key: "locations", label: "Locations" },
-  { key: "concepts", label: "Concepts" },
 ];
 
 export default function EntityList({ entities }: Props) {
@@ -16,28 +14,28 @@ export default function EntityList({ entities }: Props) {
 
   if (!hasAny) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-8 text-center">
-        <p className="text-green-500">No named entities identified.</p>
+      <div className="glass-tier-2 rounded-2xl p-8 text-center">
+        <p className="text-[--text-tertiary]">No named entities identified.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
+    <div className="glass-tier-2 rounded-2xl p-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {CATEGORIES.map(({ key, label }) => (
           <div key={key}>
-            <h4 className="font-semibold text-green-800 mb-3">{label}</h4>
+            <h4 className="font-semibold text-[--accent-cyan] mb-3">{label}</h4>
             {entities[key].length > 0 ? (
               <ul className="space-y-1.5">
                 {entities[key].map((entity, idx) => (
-                  <li key={idx} className="text-sm text-green-700">
+                  <li key={idx} className="text-sm text-[--text-secondary]">
                     {entity.url ? (
                       <a
                         href={entity.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="underline hover:text-green-900 transition-colors"
+                        className="underline decoration-black/15 hover:text-[--accent-cyan] hover:decoration-[--accent-cyan]/40 transition-colors"
                       >
                         {entity.name}
                       </a>
@@ -48,7 +46,7 @@ export default function EntityList({ entities }: Props) {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-green-400 italic">None identified</p>
+              <p className="text-sm text-[--text-tertiary] italic">None identified</p>
             )}
           </div>
         ))}

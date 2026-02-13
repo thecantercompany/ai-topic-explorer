@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { toWordCloudData } from "@/lib/analysis/word-frequency";
+import { toWordCloudData, topicToWords } from "@/lib/analysis/word-frequency";
 import type { AnalysisResult, Provider } from "@/lib/types";
 import ResultsContent from "./ResultsContent";
 
@@ -20,7 +20,11 @@ export default async function ResultsPage({ params }: Props) {
   }
 
   const result = analysis.result as unknown as AnalysisResult;
-  const wordCloudData = toWordCloudData(result.combinedWordFrequencies);
+  const topicWords = topicToWords(result.topic);
+  const filteredFrequencies = result.combinedWordFrequencies.filter(
+    (f) => !topicWords.has(f.word)
+  );
+  const wordCloudData = toWordCloudData(filteredFrequencies);
 
   // Determine which providers succeeded/failed
   const providerStatuses: { provider: Provider; status: "done" | "failed" }[] =
@@ -59,6 +63,15 @@ export default async function ResultsPage({ params }: Props) {
     partialFailureMessage = `${failedNames} unavailable — showing results from ${succeededNames}`;
   }
 
+  // Build provider raw text map for word context lookups
+  const providerTexts: Record<string, string> = {};
+  for (const provider of allProviders) {
+    const resp = result.responses[provider];
+    if (resp) {
+      providerTexts[provider] = resp.rawText;
+    }
+  }
+
   return (
     <ResultsContent
       topic={result.topic}
@@ -68,6 +81,7 @@ export default async function ResultsPage({ params }: Props) {
       providerStatuses={providerStatuses}
       partialFailureMessage={partialFailureMessage}
       analysisId={id}
+      providerTexts={providerTexts}
     />
   );
 }

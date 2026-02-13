@@ -1,0 +1,99 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import type { WordContextMatch } from "@/lib/analysis/word-context";
+
+interface Props {
+  word: string;
+  matches: WordContextMatch[];
+  onClose: () => void;
+}
+
+const PROVIDER_COLORS: Record<string, string> = {
+  claude: "bg-orange-100 text-orange-700",
+  openai: "bg-emerald-100 text-emerald-700",
+  gemini: "bg-blue-100 text-blue-700",
+};
+
+function highlightWord(text: string, word: string): React.ReactNode[] {
+  const regex = new RegExp(`(\\b${word}\\b)`, "gi");
+  const parts = text.split(regex);
+  return parts.map((part, i) =>
+    regex.test(part) ? (
+      <mark key={i} className="bg-green-200 text-green-900 rounded px-0.5">
+        {part}
+      </mark>
+    ) : (
+      <span key={i}>{part}</span>
+    )
+  );
+}
+
+export default function WordContextModal({ word, matches, onClose }: Props) {
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [onClose]);
+
+  return (
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      onClick={(e) => {
+        if (e.target === overlayRef.current) onClose();
+      }}
+    >
+      <div className="bg-white rounded-2xl shadow-xl border border-green-100 max-w-2xl w-full max-h-[80vh] flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-green-100">
+          <h3 className="text-lg font-bold text-green-900">
+            &ldquo;{word}&rdquo; in context
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-green-400 hover:text-green-700 transition-colors text-2xl leading-none"
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="overflow-y-auto px-6 py-4 space-y-6">
+          {matches.length === 0 ? (
+            <p className="text-green-500 text-sm text-center py-4">
+              No context found for this word.
+            </p>
+          ) : (
+            matches.map((match) => (
+              <div key={match.provider}>
+                <div className="flex items-center gap-2 mb-3">
+                  <span
+                    className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${PROVIDER_COLORS[match.provider] || "bg-gray-100 text-gray-700"}`}
+                  >
+                    {match.providerLabel}
+                  </span>
+                </div>
+                <ul className="space-y-2">
+                  {match.excerpts.map((excerpt, i) => (
+                    <li
+                      key={i}
+                      className="text-sm text-green-800 leading-relaxed pl-3 border-l-2 border-green-200"
+                    >
+                      {highlightWord(excerpt, word)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

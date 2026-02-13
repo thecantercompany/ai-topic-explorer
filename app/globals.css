@@ -1,48 +1,147 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f0fdf4;
-  --foreground: #14532d;
-  --primary: #22c55e;
-  --primary-dark: #16a34a;
-  --primary-light: #86efac;
+  --bg-base: #F8F6F3;
+  --bg-elevated: #F0EDEA;
+  --accent-cyan: #0891b2;
+  --accent-cyan-bright: #06b6d4;
+  --accent-cyan-muted: rgba(8, 145, 178, 0.08);
+  --accent-violet: #7c3aed;
+  --accent-violet-muted: rgba(124, 58, 237, 0.08);
+  --text-primary: #1a1a2e;
+  --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+  --glow-cyan: 0 0 20px rgba(6, 182, 212, 0.25);
+  --glow-cyan-strong: 0 0 30px rgba(6, 182, 212, 0.35), 0 0 60px rgba(6, 182, 212, 0.1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-background: var(--bg-base);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
+/* Glassmorphism tiers */
+.glass-tier-1 {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
+}
+
+.glass-tier-2 {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+}
+
+.glass-tier-3 {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+}
+
+/* Glass hover transition */
+.glass-hover {
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.glass-hover:hover {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+
+/* Glow effects */
+.glow-button-cyan {
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.3);
+}
+
+.glow-dot {
+  box-shadow: 0 0 8px currentColor, 0 0 16px currentColor;
+}
+
+/* Hero mesh background */
+.hero-mesh-bg {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(8, 145, 178, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(124, 58, 237, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(6, 182, 212, 0.04) 0%, transparent 50%);
+}
+
+/* Keyframes */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-gradient-shift {
+  animation: gradient-shift 8s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
+}
+
+/* Tippy tooltip (word cloud) */
 .tippy-box[data-theme~="custom"] {
-  background-color: #14532d;
-  color: #f0fdf4;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #1a1a2e;
   font-size: 14px;
   font-weight: 600;
   padding: 4px 8px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .tippy-box[data-theme~="custom"] > .tippy-arrow::before {
-  border-top-color: #14532d;
+  border-top-color: rgba(255, 255, 255, 0.85);
 }
 
 .tippy-box[data-theme~="custom"][data-placement^="bottom"] > .tippy-arrow::before {
-  border-bottom-color: #14532d;
+  border-bottom-color: rgba(255, 255, 255, 0.85);
 }
 
 .tippy-box[data-theme~="custom"][data-placement^="left"] > .tippy-arrow::before {
-  border-left-color: #14532d;
+  border-left-color: rgba(255, 255, 255, 0.85);
 }
 
 .tippy-box[data-theme~="custom"][data-placement^="right"] > .tippy-arrow::before {
-  border-right-color: #14532d;
+  border-right-color: rgba(255, 255, 255, 0.85);
 }

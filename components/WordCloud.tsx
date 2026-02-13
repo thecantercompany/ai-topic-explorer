@@ -1,17 +1,19 @@
 "use client";
 
+import { useCallback } from "react";
 import ReactWordcloud, { type Word } from "@cp949/react-wordcloud";
 import type { WordCloudWord } from "@/lib/types";
 
 interface Props {
   words: WordCloudWord[];
+  onWordClick?: (word: string) => void;
 }
 
 const options = {
-  colors: ["#14532d", "#15803d", "#22c55e", "#4ade80", "#86efac", "#166534"],
+  colors: ["#0891b2", "#0e7490", "#7c3aed", "#06b6d4", "#6d28d9", "#155e75"],
   enableTooltip: true,
   deterministic: true,
-  fontFamily: "system-ui, -apple-system, sans-serif",
+  fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
   fontSizes: [18, 60] as [number, number],
   fontWeight: "600",
   padding: 3,
@@ -25,20 +27,36 @@ const options = {
   },
 };
 
-export default function WordCloud({ words }: Props) {
+export default function WordCloud({ words, onWordClick }: Props) {
+  const callbacks = useCallback(
+    () => ({
+      onWordClick: onWordClick
+        ? (word: Word) => onWordClick(word.text)
+        : undefined,
+    }),
+    [onWordClick]
+  );
+
   if (words.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-8 text-center">
-        <p className="text-green-500">No word frequency data available.</p>
+      <div className="glass-tier-2 rounded-2xl p-8 text-center">
+        <p className="text-[--text-tertiary]">No word frequency data available.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
-      <div className="h-80 w-full">
-        <ReactWordcloud words={words as unknown as Word[]} options={options} />
+    <div className="glass-tier-2 rounded-2xl p-6">
+      <div className="h-80 w-full [&_text]:cursor-pointer">
+        <ReactWordcloud
+          words={words as unknown as Word[]}
+          options={options}
+          callbacks={callbacks()}
+        />
       </div>
+      <p className="mt-2 text-xs text-[--text-tertiary] text-center">
+        Click any word to see it in context
+      </p>
     </div>
   );
 }

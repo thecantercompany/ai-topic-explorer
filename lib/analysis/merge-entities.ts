@@ -23,20 +23,14 @@ export function mergeEntities(
 ): CombinedEntities {
   const allPeople: Entity[] = [];
   const allOrganizations: Entity[] = [];
-  const allLocations: Entity[] = [];
-  const allConcepts: Entity[] = [];
 
   for (const entities of entityLists) {
     allPeople.push(...entities.people);
     allOrganizations.push(...entities.organizations);
-    allLocations.push(...entities.locations);
-    allConcepts.push(...entities.concepts);
   }
 
   return {
     people: deduplicateEntities(allPeople),
     organizations: deduplicateEntities(allOrganizations),
-    locations: deduplicateEntities(allLocations),
-    concepts: deduplicateEntities(allConcepts),
   };
 }

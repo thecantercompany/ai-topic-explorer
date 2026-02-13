@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import WordCloud from "@/components/WordCloud";
+import WordContextModal from "@/components/WordContextModal";
 import EntityList from "@/components/EntityList";
 import CitationList from "@/components/CitationList";
 import ProgressTracker from "@/components/ProgressTracker";
 import Footer from "@/components/Footer";
+import { findWordContext, type WordContextMatch } from "@/lib/analysis/word-context";
 import type {
   WordCloudWord,
   CombinedEntities,
@@ -22,6 +24,7 @@ interface Props {
   providerStatuses: { provider: Provider; status: "done" | "failed" }[];
   partialFailureMessage: string | null;
   analysisId: string;
+  providerTexts: Record<string, string>;
 }
 
 export default function ResultsContent({
@@ -32,8 +35,21 @@ export default function ResultsContent({
   providerStatuses,
   partialFailureMessage,
   analysisId,
+  providerTexts,
 }: Props) {
   const [copied, setCopied] = useState(false);
+  const [contextModal, setContextModal] = useState<{
+    word: string;
+    matches: WordContextMatch[];
+  } | null>(null);
+
+  const handleWordClick = useCallback(
+    (word: string) => {
+      const matches = findWordContext(word, providerTexts);
+      setContextModal({ word, matches });
+    },
+    [providerTexts]
+  );
 
   const handleShare = async () => {
     const url = `${window.location.origin}/results/${analysisId}`;
@@ -91,7 +107,7 @@ export default function ResultsContent({
             <h2 className="text-xl font-bold text-green-900 mb-4">
               Key Terms
             </h2>
-            <WordCloud words={wordCloudData} />
+            <WordCloud words={wordCloudData} onWordClick={handleWordClick} />
           </section>
 
           {/* Entities */}
@@ -123,6 +139,14 @@ export default function ResultsContent({
       </main>
 
       <Footer />
+
+      {contextModal && (
+        <WordContextModal
+          word={contextModal.word}
+          matches={contextModal.matches}
+          onClose={() => setContextModal(null)}
+        />
+      )}
     </div>
   );
 }

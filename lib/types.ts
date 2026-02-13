@@ -8,13 +8,17 @@ export interface Entity {
 export interface ExtractedEntities {
   people: Entity[];
   organizations: Entity[];
-  locations: Entity[];
-  concepts: Entity[];
 }
 
 export interface Citation {
   title: string;
   url: string;
+}
+
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  purpose: "expansion" | "analysis";
 }
 
 export interface AIResponse {
@@ -23,6 +27,7 @@ export interface AIResponse {
   entities: ExtractedEntities;
   citations: Citation[];
   model: string;
+  usage?: TokenUsage[];
 }
 
 export interface WordFrequency {
@@ -44,12 +49,11 @@ export interface CombinedCitation {
 export interface CombinedEntities {
   people: Entity[];
   organizations: Entity[];
-  locations: Entity[];
-  concepts: Entity[];
 }
 
 export interface AnalysisResult {
   topic: string;
+  expandedQueries?: string[];
   responses: {
     claude: AIResponse | null;
     openai: AIResponse | null;
@@ -63,4 +67,5 @@ export interface AnalysisResult {
   combinedWordFrequencies: WordFrequency[];
   combinedEntities: CombinedEntities;
   combinedCitations: CombinedCitation[];
+  tokenUsage?: TokenUsage[];
 }

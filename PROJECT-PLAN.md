@@ -47,9 +47,11 @@ A web application that queries multiple AI systems (Claude, GPT, Gemini) with a 
 
 ## Phase 2: AI Integration (Claude First)
 
-- Type definitions for AIResponse, AnalysisResult, entities, citations, word frequencies
+- Type definitions for AIResponse, AnalysisResult, entities, citations, word frequencies, token usage
 - Claude Haiku client wrapper with structured prompt requesting analysis + JSON (entities with URLs + citations)
-- API route: kill switch check → rate limit check → auto-detect configured providers → parallel AI calls via `Promise.allSettled` → merge results → save to Postgres → return `{ id, ...result }`
+- **Query expansion:** Before analysis, a separate Haiku call generates 3-4 subtopic queries from the user's input, providing broader topic coverage. Uses a dedicated API key (`ANTHROPIC_EXPANSION_API_KEY`) for usage tracking.
+- API route: kill switch check → rate limit check → **query expansion** → auto-detect configured providers → parallel AI calls (all queries × all providers) via nested `Promise.allSettled` → merge subtopic results per provider → merge across providers → save to Postgres → return `{ id, ...result }`
+- Token usage logging: input/output tokens tracked per call, tagged by purpose (expansion vs. analysis), logged to console with summary
 - Rate limiting: 10 analyses/hour per IP, in-memory
 
 ---
@@ -86,9 +88,10 @@ A web application that queries multiple AI systems (Claude, GPT, Gemini) with a 
 ## Cost & Abuse Guardrails
 
 - **Rate limiting:** 10/hour per IP (in-memory)
-- **Token cap:** 1000 max tokens per AI call
+- **Token cap:** 4096 max tokens per analysis call, 300 max tokens per expansion call
 - **Kill switch:** `ANALYSIS_ENABLED` env var
-- **Estimated cost:** ~$0.01 per analysis, ~$30/month worst case
+- **Separate API keys:** `ANTHROPIC_API_KEY` for analysis, `ANTHROPIC_EXPANSION_API_KEY` for query expansion (enables independent usage tracking in Anthropic console)
+- **Estimated cost:** ~$0.04-0.05 per analysis (1 expansion + 4-5 analysis calls), ~$150/month worst case
 
 ---
 
