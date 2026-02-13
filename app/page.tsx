@@ -101,7 +101,15 @@ export default function Home() {
           <div className="relative w-full max-w-7xl mx-auto px-6 md:px-10 grid grid-cols-1 md:grid-cols-12 gap-12 md:min-h-[calc(100vh-80px)] md:items-center">
             {/* LEFT — Search */}
             <div className="col-span-1 md:col-span-7 py-16 md:py-0">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-[--text-primary] via-[--accent-cyan] to-[--accent-violet] bg-clip-text text-transparent">
+              <h1
+                className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
+                style={{
+                  background: "linear-gradient(to right, var(--text-primary), var(--accent-cyan), var(--accent-violet))",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
                 AI Topic Explorer
               </h1>
               <p className="text-lg text-[--text-secondary] mb-10 max-w-lg leading-relaxed">
