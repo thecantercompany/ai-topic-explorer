@@ -1,31 +1,216 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import FloatingKeywords from "@/components/FloatingKeywords";
 import Footer from "@/components/Footer";
 
 const ALL_TOPICS = [
+  // Science & Technology
   "Climate change policy",
   "Artificial intelligence ethics",
-  "Renewable energy in Texas",
-  "Oil and gas in New Mexico",
-  "Space exploration missions",
   "Quantum computing breakthroughs",
   "Gene editing with CRISPR",
-  "Electric vehicle adoption",
-  "Cybersecurity threats in 2026",
-  "Ocean plastic pollution",
   "Nuclear fusion progress",
-  "Remote work and productivity",
-  "Blockchain in supply chains",
-  "Mental health in teens",
-  "Autonomous vehicle regulation",
-  "Water scarcity solutions",
-  "Microplastics in food",
   "Dark matter research",
   "Antibiotic resistance",
+  "Microplastics in food",
+  "Brain-computer interfaces",
+  "Synthetic biology applications",
+  "Gravitational wave discoveries",
+  "Lab-grown meat industry",
+  "Nanotechnology in medicine",
+  "Deep sea exploration",
+  "Asteroid mining feasibility",
+  "Stem cell therapy advances",
+  "Quantum internet development",
+  "Bioprinting human organs",
+  "Neuromorphic computing",
+  "RNA therapeutics beyond vaccines",
+  "Photonic chip technology",
+  "Carbon capture technologies",
+  "Solid-state battery development",
+  "Protein folding breakthroughs",
+  "Superconductor research",
+
+  // Energy & Environment
+  "Renewable energy in Texas",
+  "Oil and gas in New Mexico",
+  "Ocean plastic pollution",
+  "Water scarcity solutions",
+  "Electric vehicle adoption",
+  "Geothermal energy expansion",
+  "Hydrogen fuel cell vehicles",
+  "Solar panel recycling",
+  "Offshore wind farms",
+  "Deforestation in the Amazon",
+  "Coral reef restoration",
+  "Permafrost thawing effects",
+  "Wildfire prevention technology",
+  "Urban heat island mitigation",
+  "Desalination breakthroughs",
+  "Agrivoltaics and dual-use farming",
+  "Methane emissions tracking",
+  "Rare earth mineral mining",
+  "Grid-scale energy storage",
+  "Rewilding initiatives in Europe",
+
+  // Space
+  "Space exploration missions",
+  "Mars colonization challenges",
+  "James Webb Telescope discoveries",
+  "Space debris cleanup",
+  "Lunar base construction",
+  "Exoplanet habitability",
+  "Commercial space tourism",
+  "Space-based solar power",
+  "Satellite mega-constellations",
+  "Search for extraterrestrial life",
+
+  // Health & Medicine
+  "Mental health in teens",
+  "Psychedelic-assisted therapy",
+  "Gut microbiome and health",
+  "Long COVID research",
+  "Alzheimer's treatment progress",
+  "Global vaccine distribution",
+  "Telemedicine adoption",
+  "Personalized medicine genomics",
+  "Obesity drug breakthroughs",
+  "Sleep science discoveries",
+  "Maternal mortality disparities",
+  "Wearable health technology",
+  "Cancer immunotherapy advances",
+  "Longevity and aging research",
+  "Pandemic preparedness strategy",
+  "Mental health in the workplace",
+  "Rare disease treatments",
+  "Fentanyl crisis solutions",
+  "Digital therapeutics",
+  "Global malaria eradication",
+
+  // AI & Computing
   "Generative AI in education",
+  "Cybersecurity threats in 2026",
+  "AI in drug discovery",
+  "Deepfake detection methods",
+  "AI-generated art copyright",
+  "Large language model bias",
+  "Autonomous vehicle regulation",
+  "AI in criminal justice",
+  "Robotics in elder care",
+  "Open source AI models",
+  "AI chip competition",
+  "Machine learning in weather forecasting",
+  "AI regulation in the EU",
+  "Computer vision in agriculture",
+  "AI-powered scientific research",
+  "Edge computing applications",
+  "Digital twin technology",
+  "Prompt engineering techniques",
+  "AI in music composition",
+  "Embodied AI and robotics",
+
+  // Society & Culture
+  "Remote work and productivity",
+  "Social media effects on democracy",
+  "Digital privacy rights",
+  "Universal basic income trials",
+  "Misinformation and media literacy",
+  "Gig economy worker protections",
+  "Homelessness solutions in cities",
+  "Online education quality",
+  "Digital nomad visa programs",
+  "Content moderation challenges",
+  "Aging population economics",
+  "Affordable housing crisis",
+  "Student loan debt impact",
+  "Immigration policy reform",
+  "Rural broadband expansion",
+  "Prison reform and recidivism",
+  "Food insecurity in America",
+  "Gender pay gap analysis",
+  "Childhood literacy programs",
+  "Public transit modernization",
+
+  // Economics & Business
+  "Blockchain in supply chains",
+  "Central bank digital currencies",
+  "Semiconductor supply chain",
+  "Creator economy growth",
+  "ESG investing debate",
+  "Inflation and monetary policy",
+  "Commercial real estate future",
+  "Subscription economy trends",
+  "Trade war economic impacts",
+  "Venture capital in Africa",
+  "Small business AI adoption",
+  "Four-day work week experiments",
+  "Cryptocurrency regulation globally",
+  "Nearshoring manufacturing trends",
+  "Sovereign wealth fund strategies",
+
+  // Geopolitics & Global Affairs
+  "Arctic territorial disputes",
+  "Semiconductor geopolitics",
+  "Africa's economic transformation",
+  "South China Sea tensions",
+  "NATO expansion implications",
+  "Global water conflict risks",
+  "Nuclear proliferation threats",
+  "Latin America political shifts",
+  "Middle East diplomatic realignment",
+  "Pacific Island climate migration",
+
+  // History & Philosophy
+  "Ancient Roman engineering",
+  "Philosophy of consciousness",
+  "History of cryptography",
+  "Indigenous knowledge systems",
+  "Evolution of human language",
+  "Medieval Islamic golden age",
+  "Ethics of human enhancement",
+  "History of pandemics",
+  "Silk Road trade networks",
+  "Stoicism in modern life",
+
+  // Food & Agriculture
+  "Vertical farming viability",
+  "Regenerative agriculture",
+  "Global coffee supply threats",
+  "Precision agriculture technology",
+  "Food waste reduction strategies",
+  "Pollinator decline impacts",
+  "Cultured seafood development",
+  "Soil health restoration",
+  "Urban farming movements",
+  "Fermentation technology revival",
+
+  // Arts & Media
+  "Streaming industry consolidation",
+  "Video game preservation",
+  "AI in filmmaking",
+  "Podcast industry economics",
+  "Museum digital transformation",
+  "Independent journalism survival",
+  "Virtual reality storytelling",
+  "Music industry streaming royalties",
+  "Public library evolution",
+  "Documentary filmmaking ethics",
+
+  // Sports & Recreation
+  "Concussion research in sports",
+  "Esports industry growth",
+  "Women's sports investment",
+  "Sports analytics revolution",
+  "Olympic hosting economics",
+
+  // Education
+  "Coding bootcamp effectiveness",
+  "Montessori education outcomes",
+  "Multilingual education benefits",
+  "Trade school renaissance",
+  "Neuroscience of learning",
 ];
 
 function pickRandom<T>(arr: T[], count: number): T[] {
@@ -40,6 +225,21 @@ export default function Home() {
   const [showMethodology, setShowMethodology] = useState(false);
   const router = useRouter();
   const exampleTopics = useMemo(() => pickRandom(ALL_TOPICS, 5), []);
+
+  const getPlaceholderTopic = useCallback(() => {
+    const remaining = ALL_TOPICS.filter((t) => !exampleTopics.includes(t));
+    return remaining[Math.floor(Math.random() * remaining.length)];
+  }, [exampleTopics]);
+
+  const [placeholder, setPlaceholder] = useState("");
+
+  useEffect(() => {
+    setPlaceholder(getPlaceholderTopic());
+    const interval = setInterval(() => {
+      setPlaceholder(getPlaceholderTopic());
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [getPlaceholderTopic]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +325,7 @@ export default function Home() {
                     type="text"
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
-                    placeholder='e.g. "oil and gas in New Mexico"'
+                    placeholder={placeholder ? `e.g. "${placeholder}"` : 'e.g. "oil and gas in New Mexico"'}
                     className="flex-1 px-5 py-3.5 text-base rounded-2xl bg-white/80 border border-black/12 shadow-sm text-[--text-primary] placeholder-[--text-tertiary] focus:outline-none focus:border-[--accent-cyan]/50 focus:ring-2 focus:ring-[--accent-cyan]/15 focus:bg-white/90 backdrop-blur-xl transition-all duration-300"
                     disabled={isLoading}
                   />
@@ -151,15 +351,7 @@ export default function Home() {
 
               {/* Example Topics */}
               <div className="text-sm text-[--text-secondary]">
-                <div className="flex items-center gap-3 mb-3">
-                  <p>Try an example:</p>
-                  <button
-                    onClick={() => setShowMethodology(true)}
-                    className="text-[--accent-cyan] hover:text-[--accent-violet] transition-colors underline underline-offset-2"
-                  >
-                    How does this work?
-                  </button>
-                </div>
+                <p className="mb-3">Try an example:</p>
                 <div className="flex flex-wrap gap-2">
                   {exampleTopics.map((example) => (
                     <button
@@ -172,6 +364,12 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
+                <button
+                  onClick={() => setShowMethodology(true)}
+                  className="mt-4 text-[--accent-cyan] hover:text-[--accent-violet] transition-colors underline underline-offset-2"
+                >
+                  How does this work?
+                </button>
               </div>
             </div>
 
