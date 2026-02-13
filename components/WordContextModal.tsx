@@ -15,8 +15,20 @@ const PROVIDER_COLORS: Record<string, string> = {
   gemini: "bg-blue-100 text-blue-700",
 };
 
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function highlightWord(text: string, word: string): React.ReactNode[] {
-  const regex = new RegExp(`(\\b${word}\\b)`, "gi");
+  // Build a regex that matches any individual word from the phrase
+  const words = word
+    .split(/\s+/)
+    .filter((w) => w.length > 0)
+    .map(escapeRegex);
+  const pattern = words.length === 1
+    ? `(\\b${words[0]}\\b)`
+    : `(\\b(?:${words.join("|")})\\b)`;
+  const regex = new RegExp(pattern, "gi");
   const parts = text.split(regex);
   return parts.map((part, i) =>
     regex.test(part) ? (

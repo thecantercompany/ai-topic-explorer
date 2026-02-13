@@ -125,6 +125,15 @@ body {
   animation: fade-in-up 0.5s ease-out forwards;
 }
 
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
 /* Tippy tooltip (word cloud) */
 .tippy-box[data-theme~="custom"] {
   background: rgba(255, 255, 255, 0.85);
@@ -212,25 +221,39 @@ html {
   color: var(--accent-cyan);
 }
 
-/* Floating keyword animations */
-@keyframes float-keyword {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33% { transform: translateY(-12px) rotate(1deg); }
-  66% { transform: translateY(6px) rotate(-1deg); }
+/* Floating keyword animations — each pill gets its own drift via CSS vars */
+@keyframes float-drift {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  25% {
+    transform: translate(var(--drift-x), calc(var(--drift-y) * -0.6)) rotate(var(--drift-rotate));
+  }
+  50% {
+    transform: translate(calc(var(--drift-x) * -0.4), var(--drift-y)) rotate(calc(var(--drift-rotate) * -0.8));
+  }
+  75% {
+    transform: translate(calc(var(--drift-x) * 0.7), calc(var(--drift-y) * -0.3)) rotate(calc(var(--drift-rotate) * 0.5));
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.85;
+  }
 }
 
-@keyframes float-keyword-alt {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33% { transform: translateY(8px) rotate(-1.5deg); }
-  66% { transform: translateY(-10px) rotate(1.5deg); }
-}
-
-.animate-float-keyword {
-  animation: float-keyword 6s ease-in-out infinite;
-}
-
-.animate-float-keyword-alt {
-  animation: float-keyword-alt 7s ease-in-out infinite;
+.animate-float-drift {
+  --drift-x: 15px;
+  --drift-y: 15px;
+  --drift-rotate: 2deg;
+  animation: float-drift ease-in-out infinite;
+  will-change: transform;
 }
 
 /* Packed bubble word cloud */

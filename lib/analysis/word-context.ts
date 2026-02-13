@@ -13,9 +13,10 @@ const PROVIDER_LABELS: Record<Provider, string> = {
 };
 
 /**
- * Find sentences containing a given word across all provider texts.
- * Returns up to `maxExcerpts` matching sentences per provider, with
- * the matched word highlighted using **bold** markers.
+ * Find sentences containing a given word/phrase across all provider texts.
+ * For multi-word phrases, uses fuzzy matching: sentences are scored by how
+ * many of the individual words they contain and ranked by relevance.
+ * Returns up to `maxExcerpts` best-matching sentences per provider.
  */
 export function findWordContext(
   word: string,
@@ -23,34 +24,62 @@ export function findWordContext(
   maxExcerpts = 3
 ): WordContextMatch[] {
   const results: WordContextMatch[] = [];
-  const wordLower = word.toLowerCase();
-  // Match word boundaries — handles punctuation around the word
-  const wordRegex = new RegExp(`\\b${escapeRegex(wordLower)}\\b`, "gi");
+  const words = word
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((w) => w.length > 0);
+
+  // Build a regex for each individual word
+  const wordRegexes = words.map(
+    (w) => new RegExp(`\\b${escapeRegex(w)}\\b`, "gi")
+  );
+
+  // Also try exact phrase match
+  const exactRegex = new RegExp(`\\b${escapeRegex(word.toLowerCase())}\\b`, "gi");
 
   for (const [provider, text] of Object.entries(providerTexts)) {
-    // Split into sentences (handles ., !, ?, and newlines as boundaries)
     const sentences = text
       .split(/(?<=[.!?])\s+|\n+/)
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
 
-    const matchingSentences: string[] = [];
+    // Score each sentence by how many query words it contains
+    const scored: { sentence: string; score: number; exact: boolean }[] = [];
 
     for (const sentence of sentences) {
-      if (matchingSentences.length >= maxExcerpts) break;
+      const sentenceLower = sentence.toLowerCase();
 
-      if (wordRegex.test(sentence)) {
-        // Reset regex lastIndex since we're using 'g' flag
-        wordRegex.lastIndex = 0;
-        matchingSentences.push(sentence);
+      // Check for exact phrase match first
+      exactRegex.lastIndex = 0;
+      const isExact = exactRegex.test(sentenceLower);
+
+      // Count how many individual words match
+      let matchCount = 0;
+      for (const regex of wordRegexes) {
+        regex.lastIndex = 0;
+        if (regex.test(sentenceLower)) matchCount++;
+      }
+
+      // Require at least half the words to match (minimum 1)
+      const minWords = Math.max(1, Math.ceil(words.length / 2));
+      if (matchCount >= minWords) {
+        scored.push({ sentence, score: matchCount, exact: isExact });
       }
     }
 
-    if (matchingSentences.length > 0) {
+    // Sort: exact matches first, then by word count (descending)
+    scored.sort((a, b) => {
+      if (a.exact !== b.exact) return a.exact ? -1 : 1;
+      return b.score - a.score;
+    });
+
+    const topExcerpts = scored.slice(0, maxExcerpts).map((s) => s.sentence);
+
+    if (topExcerpts.length > 0) {
       results.push({
         provider: provider as Provider,
         providerLabel: PROVIDER_LABELS[provider as Provider] || provider,
-        excerpts: matchingSentences,
+        excerpts: topExcerpts,
       });
     }
   }

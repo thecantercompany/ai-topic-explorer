@@ -223,6 +223,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showMethodology, setShowMethodology] = useState(false);
+  const [showWaitTooltip, setShowWaitTooltip] = useState(false);
   const router = useRouter();
   const exampleTopics = useMemo(() => pickRandom(ALL_TOPICS, 5), []);
 
@@ -240,6 +241,15 @@ export default function Home() {
     }, 5000);
     return () => clearInterval(interval);
   }, [getPlaceholderTopic]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setShowWaitTooltip(false);
+      return;
+    }
+    const timer = setTimeout(() => setShowWaitTooltip(true), 4000);
+    return () => clearTimeout(timer);
+  }, [isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -326,20 +336,28 @@ export default function Home() {
                     className="flex-1 px-5 py-3.5 text-base rounded-2xl bg-white/80 border border-black/12 shadow-sm text-[--text-primary] placeholder-[--text-tertiary] focus:outline-none focus:border-[--accent-cyan]/50 focus:ring-2 focus:ring-[--accent-cyan]/15 focus:bg-white/90 backdrop-blur-xl transition-all duration-300"
                     disabled={isLoading}
                   />
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="btn-primary px-8 py-3.5 text-base rounded-2xl whitespace-nowrap"
-                  >
-                    {isLoading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <span className="w-4 h-4 border-2 border-white/80 border-t-transparent rounded-full animate-spin" />
-                        Analyzing…
-                      </span>
-                    ) : (
-                      "Explore"
+                  <div className="relative">
+                    <button
+                      type="submit"
+                      disabled={isLoading}
+                      className="btn-primary px-8 py-3.5 text-base rounded-2xl whitespace-nowrap"
+                    >
+                      {isLoading ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="w-4 h-4 border-2 border-white/80 border-t-transparent rounded-full animate-spin" />
+                          Analyzing…
+                        </span>
+                      ) : (
+                        "Explore"
+                      )}
+                    </button>
+                    {showWaitTooltip && (
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 px-4 py-2 rounded-xl bg-[--bg-secondary] border border-black/8 shadow-lg text-sm text-[--text-secondary] whitespace-nowrap animate-fade-in">
+                        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-[--bg-secondary] border-l border-t border-black/8" />
+                        Hang tight — we&apos;re almost done!
+                      </div>
                     )}
-                  </button>
+                  </div>
                 </div>
                 {error && (
                   <p className="mt-4 text-red-500 font-medium text-sm">{error}</p>
