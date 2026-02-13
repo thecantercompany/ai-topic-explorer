@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Analysis {
+  id        String   @id @default(cuid())
+  topic     String
+  result    Json
+  createdAt DateTime @default(now())
+}
