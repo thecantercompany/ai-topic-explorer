@@ -247,7 +247,7 @@ export default function Home() {
       setShowWaitTooltip(false);
       return;
     }
-    const timer = setTimeout(() => setShowWaitTooltip(true), 4000);
+    const timer = setTimeout(() => setShowWaitTooltip(true), 7000);
     return () => clearTimeout(timer);
   }, [isLoading]);
 
@@ -362,8 +362,8 @@ export default function Home() {
                       )}
                     </button>
                     {showWaitTooltip && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 px-4 py-2.5 rounded-xl bg-[--text-primary] shadow-lg shadow-black/15 text-sm font-medium text-white whitespace-nowrap animate-fade-in">
-                        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-[--text-primary]" />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 px-4 py-2.5 rounded-xl bg-gray-900 shadow-lg shadow-black/15 text-sm font-medium text-white whitespace-nowrap animate-fade-in">
+                        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-gray-900" />
                         Hang tight — we&apos;re almost done!
                       </div>
                     )}
