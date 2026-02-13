@@ -1,8 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f0fdf4;
+  --foreground: #14532d;
+  --primary: #22c55e;
+  --primary-dark: #16a34a;
+  --primary-light: #86efac;
 }
 
 @theme inline {
@@ -12,15 +15,34 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.tippy-box[data-theme~="custom"] {
+  background-color: #14532d;
+  color: #f0fdf4;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.tippy-box[data-theme~="custom"] > .tippy-arrow::before {
+  border-top-color: #14532d;
+}
+
+.tippy-box[data-theme~="custom"][data-placement^="bottom"] > .tippy-arrow::before {
+  border-bottom-color: #14532d;
+}
+
+.tippy-box[data-theme~="custom"][data-placement^="left"] > .tippy-arrow::before {
+  border-left-color: #14532d;
+}
+
+.tippy-box[data-theme~="custom"][data-placement^="right"] > .tippy-arrow::before {
+  border-right-color: #14532d;
 }

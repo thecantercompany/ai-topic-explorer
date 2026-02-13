@@ -12,21 +12,21 @@ const PROVIDER_LABELS: Record<Provider, string> = {
 
 const PROVIDER_COLORS: Record<Provider, string> = {
   claude: "bg-orange-100 text-orange-700",
-  openai: "bg-green-100 text-green-700",
+  openai: "bg-emerald-100 text-emerald-700",
   gemini: "bg-blue-100 text-blue-700",
 };
 
 export default function CitationList({ citations }: Props) {
   if (citations.length === 0) {
     return (
-      <div className="bg-white rounded-lg border border-slate-200 p-8 text-center">
-        <p className="text-slate-500">No citations suggested.</p>
+      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-8 text-center">
+        <p className="text-green-500">No citations suggested.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200 p-6">
+    <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
       <ul className="space-y-4">
         {citations.map((citation, idx) => (
           <li key={idx} className="flex flex-col gap-1.5">
@@ -35,13 +35,13 @@ export default function CitationList({ citations }: Props) {
                 href={citation.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:underline text-sm font-medium leading-snug"
+                className="text-green-700 underline hover:text-green-900 text-sm font-medium leading-snug transition-colors"
               >
                 {citation.title}
               </a>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 truncate max-w-md">
+              <span className="text-xs text-green-400 truncate max-w-md">
                 {citation.url}
               </span>
               <div className="flex gap-1">
@@ -60,19 +60,19 @@ export default function CitationList({ citations }: Props) {
       </ul>
 
       {/* Disclaimer */}
-      <p className="mt-6 text-xs text-slate-400 border-t border-slate-100 pt-4">
+      <p className="mt-6 text-xs text-green-400 border-t border-green-100 pt-4">
         Sources suggested by AI models — links may not be accurate.
       </p>
 
       {/* AEO Checker callout */}
-      <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-        <p className="text-sm text-blue-800">
+      <div className="mt-4 bg-green-50 border border-green-200 rounded-2xl p-4 text-center">
+        <p className="text-sm text-green-800">
           Want your website cited by AI?{" "}
           <a
             href="https://aeochecker.app"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-semibold text-blue-600 hover:underline"
+            className="font-semibold underline hover:text-green-900 transition-colors"
           >
             Check out AEO Checker
           </a>

@@ -55,20 +55,20 @@ export default function ResultsContent({
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen flex flex-col">
       <main className="flex-1 py-12 px-4">
         <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="mb-8 text-center">
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+            <h1 className="text-3xl md:text-4xl font-bold text-green-900 mb-2">
               {topic}
             </h1>
-            <p className="text-slate-500 mb-4">AI Topic Analysis</p>
+            <p className="text-green-600 mb-4">AI Topic Analysis</p>
 
             {/* Share button */}
             <button
               onClick={handleShare}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-xl hover:bg-green-100 transition-all"
             >
               {copied ? "Link copied!" : "Share results"}
             </button>
@@ -81,14 +81,14 @@ export default function ResultsContent({
 
           {/* Partial failure banner */}
           {partialFailureMessage && (
-            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800 text-center">
+            <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-sm text-amber-800 text-center">
               {partialFailureMessage}
             </div>
           )}
 
           {/* Word Cloud */}
           <section className="mb-10">
-            <h2 className="text-xl font-bold text-slate-800 mb-4">
+            <h2 className="text-xl font-bold text-green-900 mb-4">
               Key Terms
             </h2>
             <WordCloud words={wordCloudData} />
@@ -96,7 +96,7 @@ export default function ResultsContent({
 
           {/* Entities */}
           <section className="mb-10">
-            <h2 className="text-xl font-bold text-slate-800 mb-4">
+            <h2 className="text-xl font-bold text-green-900 mb-4">
               Named Entities
             </h2>
             <EntityList entities={entities} />
@@ -104,7 +104,7 @@ export default function ResultsContent({
 
           {/* Citations */}
           <section className="mb-10">
-            <h2 className="text-xl font-bold text-slate-800 mb-4">
+            <h2 className="text-xl font-bold text-green-900 mb-4">
               Citations
             </h2>
             <CitationList citations={citations} />
@@ -114,7 +114,7 @@ export default function ResultsContent({
           <div className="text-center mt-12">
             <Link
               href="/"
-              className="inline-block px-8 py-3 text-lg font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition"
+              className="inline-block px-8 py-3 text-lg font-semibold text-white bg-green-500 rounded-2xl hover:bg-green-600 focus:outline-none focus:ring-4 focus:ring-green-200 transition-all"
             >
               Analyze Another Topic
             </Link>

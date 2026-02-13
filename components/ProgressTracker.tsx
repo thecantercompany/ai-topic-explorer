@@ -17,30 +17,30 @@ const PROVIDER_LABELS: Record<Provider, string> = {
 
 export default function ProgressTracker({ providers }: Props) {
   return (
-    <div className="flex items-center justify-center gap-6 bg-white rounded-lg border border-slate-200 px-6 py-4">
+    <div className="flex items-center justify-center gap-6 bg-white rounded-2xl shadow-sm border border-green-100 px-6 py-4">
       {providers.map(({ provider, status }) => (
         <div key={provider} className="flex items-center gap-2">
           {status === "pending" && (
-            <span className="w-3 h-3 rounded-full bg-slate-300" />
+            <span className="w-3 h-3 rounded-full bg-green-200" />
           )}
           {status === "loading" && (
-            <span className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
+            <span className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
           )}
           {status === "done" && (
             <span className="w-3 h-3 rounded-full bg-green-500" />
           )}
           {status === "failed" && (
-            <span className="w-3 h-3 rounded-full bg-red-500" />
+            <span className="w-3 h-3 rounded-full bg-orange-500" />
           )}
           <span
             className={`text-sm font-medium ${
               status === "done"
                 ? "text-green-700"
                 : status === "failed"
-                  ? "text-red-600"
+                  ? "text-orange-600"
                   : status === "loading"
-                    ? "text-blue-600"
-                    : "text-slate-400"
+                    ? "text-green-600"
+                    : "text-green-400"
             }`}
           >
             {PROVIDER_LABELS[provider]}

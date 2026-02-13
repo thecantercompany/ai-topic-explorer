@@ -8,7 +8,7 @@ interface Props {
 }
 
 const options = {
-  colors: ["#1e3a5f", "#2563eb", "#3b82f6", "#60a5fa", "#93c5fd", "#475569"],
+  colors: ["#14532d", "#15803d", "#22c55e", "#4ade80", "#86efac", "#166534"],
   enableTooltip: true,
   deterministic: true,
   fontFamily: "system-ui, -apple-system, sans-serif",
@@ -19,19 +19,23 @@ const options = {
   rotationAngles: [0, 90] as [number, number],
   scale: "sqrt" as const,
   spiral: "archimedean" as const,
+  tooltipOptions: {
+    theme: "custom",
+    appendTo: () => document.body,
+  },
 };
 
 export default function WordCloud({ words }: Props) {
   if (words.length === 0) {
     return (
-      <div className="bg-white rounded-lg border border-slate-200 p-8 text-center">
-        <p className="text-slate-500">No word frequency data available.</p>
+      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-8 text-center">
+        <p className="text-green-500">No word frequency data available.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200 p-6">
+    <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
       <div className="h-80 w-full">
         <ReactWordcloud words={words as unknown as Word[]} options={options} />
       </div>

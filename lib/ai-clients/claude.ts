@@ -81,8 +81,8 @@ function parseStructuredData(text: string): {
         citations: parsed.citations || [],
       };
     }
-  } catch {
-    // JSON parsing failed, return fallback
+  } catch (e) {
+    console.warn("Failed to parse entities/citations JSON from Claude response:", e);
   }
 
   return fallback;
@@ -96,7 +96,7 @@ function extractRawText(text: string): string {
 export async function analyzeWithClaude(topic: string): Promise<AIResponse> {
   const message = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
-    max_tokens: 1000,
+    max_tokens: 4096,
     messages: [
       {
         role: "user",
@@ -104,6 +104,10 @@ export async function analyzeWithClaude(topic: string): Promise<AIResponse> {
       },
     ],
   });
+
+  if (message.stop_reason === "max_tokens") {
+    console.warn("Claude response was truncated due to max_tokens limit");
+  }
 
   const responseText = message.content
     .filter((block): block is Anthropic.TextBlock => block.type === "text")

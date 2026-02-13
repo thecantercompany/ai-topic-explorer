@@ -16,28 +16,28 @@ export default function EntityList({ entities }: Props) {
 
   if (!hasAny) {
     return (
-      <div className="bg-white rounded-lg border border-slate-200 p-8 text-center">
-        <p className="text-slate-500">No named entities identified.</p>
+      <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-8 text-center">
+        <p className="text-green-500">No named entities identified.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200 p-6">
+    <div className="bg-white rounded-2xl shadow-sm border border-green-100 p-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {CATEGORIES.map(({ key, label }) => (
           <div key={key}>
-            <h4 className="font-semibold text-slate-700 mb-3">{label}</h4>
+            <h4 className="font-semibold text-green-800 mb-3">{label}</h4>
             {entities[key].length > 0 ? (
               <ul className="space-y-1.5">
                 {entities[key].map((entity, idx) => (
-                  <li key={idx} className="text-sm text-slate-600">
+                  <li key={idx} className="text-sm text-green-700">
                     {entity.url ? (
                       <a
                         href={entity.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
+                        className="underline hover:text-green-900 transition-colors"
                       >
                         {entity.name}
                       </a>
@@ -48,7 +48,7 @@ export default function EntityList({ entities }: Props) {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-slate-400 italic">None identified</p>
+              <p className="text-sm text-green-400 italic">None identified</p>
             )}
           </div>
         ))}
