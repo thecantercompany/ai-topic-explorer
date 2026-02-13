@@ -292,6 +292,11 @@ export default function Home() {
       }
 
       const data = await response.json();
+      if (!data.id) {
+        setError("Analysis completed but could not be saved. Please try again.");
+        setIsLoading(false);
+        return;
+      }
       router.push(`/results/${data.id}`);
     } catch {
       setError("Something went wrong. Please try again.");

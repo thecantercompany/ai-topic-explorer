@@ -242,12 +242,18 @@ export async function POST(request: NextRequest) {
   };
 
   // Save to database
-  const analysis = await prisma.analysis.create({
-    data: {
-      topic,
-      result: JSON.parse(JSON.stringify(analysisResult)),
-    },
-  });
+  let analysisId: string | null = null;
+  try {
+    const analysis = await prisma.analysis.create({
+      data: {
+        topic,
+        result: JSON.parse(JSON.stringify(analysisResult)),
+      },
+    });
+    analysisId = analysis.id;
+  } catch (e) {
+    console.error("Failed to save analysis to database:", e);
+  }
 
-  return NextResponse.json({ id: analysis.id, ...analysisResult });
+  return NextResponse.json({ id: analysisId, ...analysisResult });
 }
