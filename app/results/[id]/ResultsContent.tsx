@@ -173,7 +173,7 @@ export default function ResultsContent({
           <div className="flex-1" />
 
           {/* Actions */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 mb-4">
             <button
               onClick={handleShare}
               className="pill-interactive w-full px-4 py-2.5 rounded-xl text-sm font-medium text-center"
@@ -187,6 +187,8 @@ export default function ResultsContent({
               New Topic
             </Link>
           </div>
+
+          <Footer />
         </aside>
 
         {/* Main content */}
@@ -222,8 +224,6 @@ export default function ResultsContent({
               </h2>
               <CitationList citations={citations} />
             </section>
-
-            <Footer />
           </div>
         </div>
       </div>
