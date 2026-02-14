@@ -4,6 +4,11 @@ All notable changes to AI Topic Explorer will be documented in this file.
 
 ## [2026-02-14]
 
+### Changed
+- Cap named entities at 15 per category (people/organizations), sorted by number of mentions
+- Add explainer text under Named Entities section header
+- Redesign Grok X / Social Perspective section with inline pill layout
+
 ### Fixed
 - Fix TypeScript type assertion for Perplexity API return_related_questions parameter
 

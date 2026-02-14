@@ -259,9 +259,12 @@ export default function ResultsContent({
 
             {/* Entities */}
             <section id="entities" className="mb-10 scroll-mt-20">
-              <h2 className="text-xl font-bold text-[--text-primary] mb-4">
+              <h2 className="text-xl font-bold text-[--text-primary] mb-1">
                 Named Entities
               </h2>
+              <p className="text-sm text-[--text-tertiary] mb-4">
+                People and organizations mentioned across AI responses, listed by number of mentions. Capped at 15 per category.
+              </p>
               <EntityList entities={entities} />
             </section>
 
@@ -276,14 +279,27 @@ export default function ResultsContent({
             {/* Grok / X Social Perspective */}
             {(grokWordCloudData || grokKeyThemes) && (
               <section id="grok-perspective" className="mb-10 scroll-mt-20">
-                <h2 className="text-xl font-bold text-[--text-primary] mb-2">
+                <h2 className="text-xl font-bold text-[--text-primary] mb-4">
                   X / Social Perspective
                 </h2>
-                <p className="text-sm text-[--text-tertiary] mb-4">
-                  Powered by Grok — trained on X/Twitter data for a social media lens on this topic.
-                </p>
                 {grokKeyThemes && grokKeyThemes.length > 0 ? (
-                  <KeyThemes themes={grokKeyThemes} />
+                  <div className="glass-tier-2 rounded-2xl p-6">
+                    <p className="text-xs text-[--text-tertiary] mb-4">
+                      Powered by Grok — trained on X/Twitter data for a social media lens on this topic.
+                    </p>
+                    <div className="flex flex-wrap gap-2.5 justify-center overflow-hidden">
+                      {grokKeyThemes.map((theme) => (
+                        <span
+                          key={theme.phrase}
+                          className={`pill-interactive rounded-full font-medium max-w-full truncate ${
+                            { 5: "text-base px-4 py-2", 4: "text-sm px-3.5 py-1.5", 3: "text-sm px-3 py-1.5", 2: "text-xs px-3 py-1", 1: "text-xs px-2.5 py-1" }[theme.relevance] || "text-sm px-3 py-1.5"
+                          }`}
+                        >
+                          {theme.phrase}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 ) : grokWordCloudData ? (
                   <WordCloud words={grokWordCloudData} />
                 ) : null}

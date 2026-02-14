@@ -571,7 +571,7 @@ export default function Home() {
               <div>
                 <h3 className="font-semibold text-[--text-primary] mb-1">2. Multi-Model Analysis</h3>
                 <p>
-                  Each subtopic is sent to multiple AI models (Claude, GPT, Gemini) in parallel.
+                  Each subtopic is sent to multiple AI models (Claude, GPT, Gemini, Grok) in parallel.
                   Each model independently generates a detailed response about the topic.
                 </p>
               </div>
