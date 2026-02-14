@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { toWordCloudData, topicToWords } from "@/lib/analysis/word-frequency";
+import { calculateWordFrequency, toWordCloudData, topicToWords } from "@/lib/analysis/word-frequency";
 import type { AnalysisResult, KeyTheme, Provider } from "@/lib/types";
 import ResultsContent from "./ResultsContent";
 
@@ -28,7 +28,7 @@ export default async function ResultsPage({ params }: Props) {
   const keyThemes: KeyTheme[] = result.combinedKeyThemes || [];
 
   // Determine which providers succeeded/failed/unavailable
-  const allProviders: Provider[] = ["claude", "openai", "gemini", "perplexity"];
+  const allProviders: Provider[] = ["claude", "openai", "gemini", "perplexity", "grok"];
   const providerStatuses: { provider: Provider; status: "done" | "failed" | "unavailable" }[] =
     allProviders.map((provider) => {
       if (result.responses[provider]) {
@@ -52,6 +52,7 @@ export default async function ResultsPage({ params }: Props) {
     openai: "GPT",
     gemini: "Gemini",
     perplexity: "Perplexity",
+    grok: "Grok",
   };
 
   let partialFailureMessage: string | null = null;
@@ -68,12 +69,31 @@ export default async function ResultsPage({ params }: Props) {
   // Build provider raw text map for word context lookups (exclude Perplexity — web search, not training data)
   const providerTexts: Record<string, string> = {};
   for (const provider of allProviders) {
-    if (provider === "perplexity") continue;
+    if (provider === "perplexity" || provider === "grok") continue;
     const resp = result.responses[provider];
     if (resp) {
       providerTexts[provider] = resp.rawText;
     }
   }
+
+  // Grok-specific analysis (separate from combined — X/Twitter data perspective)
+  const grokResponse = result.responses.grok;
+  const grokWordCloudData = grokResponse
+    ? toWordCloudData(calculateWordFrequency(grokResponse.rawText, topicWords))
+    : null;
+  const grokKeyThemes: KeyTheme[] | null = grokResponse?.keyThemes?.length
+    ? grokResponse.keyThemes
+    : null;
+
+  // Perplexity Web Perspective data (separate from combined — web search perspective)
+  const perplexityResponse = result.responses.perplexity;
+  const perplexityData = perplexityResponse
+    ? {
+        rawText: perplexityResponse.rawText,
+        keyThemes: perplexityResponse.keyThemes || [],
+        relatedQuestions: perplexityResponse.relatedQuestions || [],
+      }
+    : null;
 
   return (
     <ResultsContent
@@ -86,6 +106,9 @@ export default async function ResultsPage({ params }: Props) {
       partialFailureMessage={partialFailureMessage}
       analysisId={id}
       providerTexts={providerTexts}
+      grokWordCloudData={grokWordCloudData}
+      grokKeyThemes={grokKeyThemes}
+      perplexityData={perplexityData}
     />
   );
 }

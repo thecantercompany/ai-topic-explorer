@@ -9,6 +9,7 @@ const PROVIDER_LABELS: Record<Provider, string> = {
   openai: "GPT",
   gemini: "Gemini",
   perplexity: "Perplexity",
+  grok: "Grok",
 };
 
 const PROVIDER_COLORS: Record<Provider, string> = {
@@ -16,6 +17,7 @@ const PROVIDER_COLORS: Record<Provider, string> = {
   openai: "bg-emerald-100 text-emerald-700",
   gemini: "bg-blue-100 text-blue-700",
   perplexity: "bg-purple-100 text-purple-700",
+  grok: "bg-red-100 text-red-700",
 };
 
 /** Group consecutive citations that share the same domain. */

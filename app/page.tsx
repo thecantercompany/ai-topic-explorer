@@ -248,6 +248,17 @@ export default function Home() {
 
   const [placeholder, setPlaceholder] = useState("");
 
+  // Pre-fill topic from ?topic= query param (e.g. from "Explore Further" links)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const prefilled = params.get("topic");
+    if (prefilled) {
+      setTopic(prefilled);
+      // Clean the URL without triggering navigation
+      window.history.replaceState({}, "", "/");
+    }
+  }, []);
+
   useEffect(() => {
     setPlaceholder(getPlaceholderTopic());
     const interval = setInterval(() => {
@@ -566,7 +577,16 @@ export default function Home() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-[--text-primary] mb-1">3. Key Theme Extraction</h3>
+                <h3 className="font-semibold text-[--text-primary] mb-1">3. Web Perspective</h3>
+                <p>
+                  Perplexity searches the live web for each subtopic, providing a real-time
+                  perspective grounded in current sources. Its web themes and related questions
+                  are shown separately from the AI training-based analysis.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-[--text-primary] mb-1">4. Key Theme Extraction</h3>
                 <p>
                   AI identifies the most important themes from its analysis as short, meaningful
                   phrases. These are displayed as clickable pills — tap any theme to see the
@@ -575,7 +595,7 @@ export default function Home() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-[--text-primary] mb-1">4. Entity Extraction</h3>
+                <h3 className="font-semibold text-[--text-primary] mb-1">5. Entity Extraction</h3>
                 <p>
                   People and organizations mentioned across all responses are extracted and
                   deduplicated. When available, reference URLs are included.
@@ -583,7 +603,7 @@ export default function Home() {
               </div>
 
               <div>
-                <h3 className="font-semibold text-[--text-primary] mb-1">5. Citation Merging</h3>
+                <h3 className="font-semibold text-[--text-primary] mb-1">6. Citation Merging</h3>
                 <p>
                   Recommended sources from each model are merged and ranked by how many
                   models independently cited them — giving higher weight to sources with

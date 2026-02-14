@@ -17,6 +17,10 @@ export async function analyzeWithPerplexity(query: string): Promise<AIResponse> 
         content: PROMPT_TEMPLATE(query),
       },
     ],
+    // Perplexity-specific parameter (not in OpenAI SDK types)
+    return_related_questions: true,
+  } as Parameters<typeof client.chat.completions.create>[0] & {
+    return_related_questions?: boolean;
   });
 
   const responseText = completion.choices[0]?.message?.content || "";
@@ -37,12 +41,19 @@ export async function analyzeWithPerplexity(query: string): Promise<AIResponse> 
 
   const { entities, citations, keyThemes } = parseStructuredData(responseText, "Perplexity");
 
+  // Extract related questions (Perplexity-specific field, not in OpenAI types)
+  const perplexityResponse = completion as typeof completion & {
+    related_questions?: string[];
+  };
+  const relatedQuestions = perplexityResponse.related_questions || [];
+
   return {
     provider: "perplexity",
     rawText: extractRawText(responseText),
     entities,
     citations,
     keyThemes,
+    relatedQuestions,
     model: "sonar",
     usage: [usage],
   };

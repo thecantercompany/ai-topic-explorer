@@ -1,4 +1,4 @@
-export type Provider = "claude" | "openai" | "gemini" | "perplexity";
+export type Provider = "claude" | "openai" | "gemini" | "perplexity" | "grok";
 
 export interface Entity {
   name: string;
@@ -29,6 +29,7 @@ export interface AIResponse {
   keyThemes: KeyTheme[];
   model: string;
   usage?: TokenUsage[];
+  relatedQuestions?: string[];
 }
 
 export interface KeyTheme {
@@ -66,12 +67,14 @@ export interface AnalysisResult {
     openai: AIResponse | null;
     gemini: AIResponse | null;
     perplexity: AIResponse | null;
+    grok: AIResponse | null;
   };
   errors: {
     claude?: string;
     openai?: string;
     gemini?: string;
     perplexity?: string;
+    grok?: string;
   };
   combinedWordFrequencies: WordFrequency[];
   combinedKeyThemes: KeyTheme[];

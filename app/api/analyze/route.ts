@@ -5,6 +5,7 @@ import { analyzeWithClaude } from "@/lib/ai-clients/claude";
 import { analyzeWithOpenAI } from "@/lib/ai-clients/openai";
 import { analyzeWithGemini } from "@/lib/ai-clients/gemini";
 import { analyzeWithPerplexity } from "@/lib/ai-clients/perplexity";
+import { analyzeWithGrok } from "@/lib/ai-clients/grok";
 import { expandQuery } from "@/lib/analysis/query-expansion";
 import {
   calculateWordFrequency,
@@ -42,6 +43,9 @@ function getConfiguredProviders(): { provider: Provider; analyze: AnalyzeFn }[] 
   if (process.env.PERPLEXITY_API_KEY) {
     providers.push({ provider: "perplexity", analyze: analyzeWithPerplexity });
   }
+  if (process.env.XAI_API_KEY) {
+    providers.push({ provider: "grok", analyze: analyzeWithGrok });
+  }
 
   return providers;
 }
@@ -53,6 +57,9 @@ function mergeProviderResponses(responses: AIResponse[]): AIResponse {
   const allCitations = responses.flatMap((r) => r.citations);
   const allKeyThemes = responses.map((r) => r.keyThemes);
   const allUsage = responses.flatMap((r) => r.usage || []);
+  const allRelatedQuestions = [
+    ...new Set(responses.flatMap((r) => r.relatedQuestions || [])),
+  ];
 
   return {
     provider: responses[0].provider,
@@ -62,6 +69,7 @@ function mergeProviderResponses(responses: AIResponse[]): AIResponse {
     keyThemes: mergeKeyThemes(...allKeyThemes),
     model: responses[0].model,
     usage: allUsage,
+    ...(allRelatedQuestions.length > 0 && { relatedQuestions: allRelatedQuestions }),
   };
 }
 
@@ -197,6 +205,7 @@ export async function POST(request: NextRequest) {
           openai: null,
           gemini: null,
           perplexity: null,
+          grok: null,
         };
         const errors: AnalysisResult["errors"] = {};
         const wordFreqLists: WordFrequency[][] = [];
@@ -212,7 +221,7 @@ export async function POST(request: NextRequest) {
           if (result.status === "fulfilled") {
             responses[provider] = result.value;
 
-            if (provider !== "perplexity") {
+            if (provider !== "perplexity" && provider !== "grok") {
               wordFreqLists.push(calculateWordFrequency(result.value.rawText, topicWordSet));
               keyThemeLists.push(result.value.keyThemes);
               entityLists.push(result.value.entities);

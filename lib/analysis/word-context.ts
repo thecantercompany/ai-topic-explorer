@@ -11,6 +11,7 @@ const PROVIDER_LABELS: Record<Provider, string> = {
   openai: "GPT",
   gemini: "Gemini",
   perplexity: "Perplexity",
+  grok: "Grok",
 };
 
 /**
