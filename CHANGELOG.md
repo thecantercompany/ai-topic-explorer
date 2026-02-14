@@ -4,6 +4,9 @@ All notable changes to AI Topic Explorer will be documented in this file.
 
 ## [2026-02-14]
 
+### Fixed
+- Fix TypeScript type assertion for Perplexity API return_related_questions parameter
+
 ### Added
 - Add Grok (xAI) as 5th AI provider with separate "X / Social Perspective" section
 - Add Web Perspective section with Perplexity web search insights and Explore Further suggestions

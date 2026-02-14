@@ -17,10 +17,8 @@ export async function analyzeWithPerplexity(query: string): Promise<AIResponse> 
         content: PROMPT_TEMPLATE(query),
       },
     ],
-    // Perplexity-specific parameter (not in OpenAI SDK types)
+    // @ts-expect-error — Perplexity-specific parameter not in OpenAI SDK types
     return_related_questions: true,
-  } as Parameters<typeof client.chat.completions.create>[0] & {
-    return_related_questions?: boolean;
   });
 
   const responseText = completion.choices[0]?.message?.content || "";
