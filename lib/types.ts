@@ -30,11 +30,17 @@ export interface AIResponse {
   model: string;
   usage?: TokenUsage[];
   relatedQuestions?: string[];
+  quotedPhrases?: QuotedPhrase[];
 }
 
 export interface KeyTheme {
   phrase: string;
   relevance: number;
+}
+
+export interface QuotedPhrase {
+  phrase: string;
+  frequency: number;
 }
 
 export interface WordFrequency {

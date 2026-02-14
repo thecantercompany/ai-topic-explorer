@@ -1,6 +1,6 @@
 import type { Citation, CombinedCitation, Provider } from "@/lib/types";
 
-const MAX_CITATIONS = 25;
+const PRIMARY_COUNT = 10;
 
 export function mergeCitations(
   citationsByProvider: { provider: Provider; citations: Citation[] }[]
@@ -42,30 +42,35 @@ export function mergeCitations(
       return a.title.localeCompare(b.title);
     });
 
-  // Group by domain while preserving provider-count ordering.
-  // Walk the sorted list; when we encounter a domain already seen,
-  // move the citation right after the last entry for that domain.
-  const grouped: CombinedCitation[] = [];
-  const domainLastIndex = new Map<string, number>();
+  // Select top 10 as primary citations, then pull in same-domain companions.
+  const primaries = citations.slice(0, PRIMARY_COUNT);
+  const rest = citations.slice(PRIMARY_COUNT);
 
-  for (const citation of citations) {
-    const domain = citation.domain;
-    if (domainLastIndex.has(domain)) {
-      // Insert after the last citation from this domain
-      const insertAt = domainLastIndex.get(domain)! + 1;
-      grouped.splice(insertAt, 0, citation);
-      // Update indices: everything at insertAt or later shifted by 1
-      for (const [d, idx] of domainLastIndex) {
-        if (idx >= insertAt) domainLastIndex.set(d, idx + 1);
+  // Collect domains from primaries
+  const primaryDomains = new Set(primaries.map((c) => c.domain));
+
+  // Find companions: remaining citations whose domain matches a primary
+  const companions = rest.filter((c) => primaryDomains.has(c.domain));
+
+  // Build final list: walk primaries in order, insert companions after
+  // the first primary from each domain.
+  const result: CombinedCitation[] = [];
+  const processedDomains = new Set<string>();
+
+  for (const primary of primaries) {
+    result.push(primary);
+    if (!processedDomains.has(primary.domain)) {
+      processedDomains.add(primary.domain);
+      // Add all companions from this domain
+      for (const companion of companions) {
+        if (companion.domain === primary.domain) {
+          result.push(companion);
+        }
       }
-      domainLastIndex.set(domain, insertAt);
-    } else {
-      grouped.push(citation);
-      domainLastIndex.set(domain, grouped.length - 1);
     }
   }
 
-  return grouped.slice(0, MAX_CITATIONS);
+  return result;
 }
 
 function extractDomain(url: string): string {

@@ -7,7 +7,7 @@ import KeyThemes from "@/components/KeyThemes";
 import WordContextModal from "@/components/WordContextModal";
 import EntityList from "@/components/EntityList";
 import CitationList from "@/components/CitationList";
-import WebPerspective from "@/components/WebPerspective";
+import Perplexity from "@/components/Perplexity";
 import ProgressTracker from "@/components/ProgressTracker";
 import Footer from "@/components/Footer";
 import { findWordContext, type WordContextMatch } from "@/lib/analysis/word-context";
@@ -32,11 +32,7 @@ interface Props {
   providerTexts: Record<string, string>;
   grokWordCloudData: WordCloudWord[] | null;
   grokKeyThemes: KeyTheme[] | null;
-  perplexityData: {
-    rawText: string;
-    keyThemes: KeyTheme[];
-    relatedQuestions: string[];
-  } | null;
+  perplexityRelatedQuestions: string[] | null;
 }
 
 export default function ResultsContent({
@@ -51,15 +47,15 @@ export default function ResultsContent({
   providerTexts,
   grokWordCloudData,
   grokKeyThemes,
-  perplexityData,
+  perplexityRelatedQuestions,
 }: Props) {
   const sections = useMemo(() => [
     { id: "key-themes", label: "Key Themes" },
-    ...(perplexityData ? [{ id: "web-perspective", label: "Web Perspective" }] : []),
     { id: "entities", label: "Entities" },
     { id: "citations", label: "Citations" },
     ...((grokWordCloudData || grokKeyThemes) ? [{ id: "grok-perspective", label: "X/Social" }] : []),
-  ], [perplexityData, grokWordCloudData, grokKeyThemes]);
+    ...(perplexityRelatedQuestions && perplexityRelatedQuestions.length > 0 ? [{ id: "perplexity", label: "Perplexity" }] : []),
+  ], [perplexityRelatedQuestions, grokWordCloudData, grokKeyThemes]);
   const [copied, setCopied] = useState(false);
   const [contextModal, setContextModal] = useState<{
     word: string;
@@ -243,20 +239,6 @@ export default function ResultsContent({
               )}
             </section>
 
-            {/* Web Perspective (Perplexity) */}
-            {perplexityData && (
-              <section id="web-perspective" className="mb-10 scroll-mt-20">
-                <h2 className="text-xl font-bold text-[--text-primary] mb-4">
-                  Web Perspective
-                </h2>
-                <WebPerspective
-                  rawText={perplexityData.rawText}
-                  keyThemes={perplexityData.keyThemes}
-                  relatedQuestions={perplexityData.relatedQuestions}
-                />
-              </section>
-            )}
-
             {/* Entities */}
             <section id="entities" className="mb-10 scroll-mt-20">
               <h2 className="text-xl font-bold text-[--text-primary] mb-1">
@@ -303,6 +285,16 @@ export default function ResultsContent({
                 ) : grokWordCloudData ? (
                   <WordCloud words={grokWordCloudData} />
                 ) : null}
+              </section>
+            )}
+
+            {/* Perplexity — related questions */}
+            {perplexityRelatedQuestions && perplexityRelatedQuestions.length > 0 && (
+              <section id="perplexity" className="mb-10 scroll-mt-20">
+                <h2 className="text-xl font-bold text-[--text-primary] mb-4">
+                  Perplexity
+                </h2>
+                <Perplexity relatedQuestions={perplexityRelatedQuestions} />
               </section>
             )}
           </div>

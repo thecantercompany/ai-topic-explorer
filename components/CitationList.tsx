@@ -52,8 +52,8 @@ export default function CitationList({ citations }: Props) {
   return (
     <div className="glass-tier-2 rounded-2xl p-6">
       <p className="text-xs text-[--text-tertiary] mb-5">
-        Sources are ranked by how many AI models cited them, then grouped by
-        domain. Colored tags show which models suggested each source.
+        Top 10 sources ranked by AI model agreement. Additional pages from the
+        same domains are grouped below.
       </p>
 
       <div className="space-y-5">
@@ -66,31 +66,24 @@ export default function CitationList({ citations }: Props) {
             )}
             <ul className={`space-y-3 ${group.items.length > 1 ? "border-l-2 border-black/5 pl-4" : ""}`}>
               {group.items.map((citation, idx) => (
-                <li key={idx} className="flex flex-col gap-1.5 min-w-0">
-                  <div className="flex items-start gap-2 min-w-0">
-                    <a
-                      href={citation.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[--text-primary] underline decoration-black/15 hover:text-[--accent-cyan] hover:decoration-[--accent-cyan]/40 text-sm font-medium leading-snug transition-colors break-words"
-                    >
-                      {citation.title}
-                    </a>
-                  </div>
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-xs text-[--text-tertiary] truncate">
-                      {citation.url}
-                    </span>
-                    <div className="flex gap-1 shrink-0">
-                      {citation.providers.map((provider) => (
-                        <span
-                          key={provider}
-                          className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${PROVIDER_COLORS[provider]}`}
-                        >
-                          {PROVIDER_LABELS[provider]}
-                        </span>
-                      ))}
-                    </div>
+                <li key={idx} className="flex items-center gap-2 min-w-0">
+                  <a
+                    href={citation.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[--text-primary] underline decoration-black/15 hover:text-[--accent-cyan] hover:decoration-[--accent-cyan]/40 text-sm font-medium leading-snug transition-colors truncate"
+                  >
+                    {citation.title}
+                  </a>
+                  <div className="flex gap-1 shrink-0">
+                    {citation.providers.map((provider) => (
+                      <span
+                        key={provider}
+                        className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium ${PROVIDER_COLORS[provider]}`}
+                      >
+                        {PROVIDER_LABELS[provider]}
+                      </span>
+                    ))}
                   </div>
                 </li>
               ))}

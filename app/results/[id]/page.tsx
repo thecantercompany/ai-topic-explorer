@@ -85,14 +85,10 @@ export default async function ResultsPage({ params }: Props) {
     ? grokResponse.keyThemes
     : null;
 
-  // Perplexity Web Perspective data (separate from combined — web search perspective)
+  // Perplexity related questions (web search perspective)
   const perplexityResponse = result.responses.perplexity;
-  const perplexityData = perplexityResponse
-    ? {
-        rawText: perplexityResponse.rawText,
-        keyThemes: perplexityResponse.keyThemes || [],
-        relatedQuestions: perplexityResponse.relatedQuestions || [],
-      }
+  const perplexityRelatedQuestions = perplexityResponse?.relatedQuestions?.length
+    ? perplexityResponse.relatedQuestions
     : null;
 
   return (
@@ -108,7 +104,7 @@ export default async function ResultsPage({ params }: Props) {
       providerTexts={providerTexts}
       grokWordCloudData={grokWordCloudData}
       grokKeyThemes={grokKeyThemes}
-      perplexityData={perplexityData}
+      perplexityRelatedQuestions={perplexityRelatedQuestions}
     />
   );
 }

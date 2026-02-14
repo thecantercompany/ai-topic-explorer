@@ -5,6 +5,8 @@ All notable changes to AI Topic Explorer will be documented in this file.
 ## [2026-02-14]
 
 ### Changed
+- Replace bulky Web Perspective section with lightweight Perplexity section showing only related questions
+- Show top 10 citations with same-domain companions instead of capped-at-25 list; compact single-line layout
 - Cap named entities at 15 per category (people/organizations), sorted by number of mentions
 - Add explainer text under Named Entities section header
 - Redesign Grok X / Social Perspective section with inline pill layout
@@ -14,7 +16,6 @@ All notable changes to AI Topic Explorer will be documented in this file.
 
 ### Added
 - Add Grok (xAI) as 5th AI provider with separate "X / Social Perspective" section
-- Add Web Perspective section with Perplexity web search insights and Explore Further suggestions
 - Add topic pre-fill from URL query parameters for Explore Further links
 - Add changelog modal to footer
 - Add GA4 analytics, event tracking, and increase max AI response length

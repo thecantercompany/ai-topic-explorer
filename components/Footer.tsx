@@ -6,9 +6,10 @@ const CHANGELOG: { date: string; changes: string[] }[] = [
   {
     date: "Feb 14",
     changes: [
+      "Replace Web Perspective with lightweight Perplexity section showing related questions",
+      "Show top 10 citations with same-domain companions, compact single-line layout",
       "Cap named entities at 15 per category, sorted by number of mentions",
       "Add Grok (xAI) as 5th AI provider with separate X / Social Perspective section",
-      "Add Web Perspective section with Perplexity web search insights and Explore Further suggestions",
       "Add changelog modal to footer",
       "Add GA4 analytics, event tracking, and increase max AI response length",
       "Add OpenAI, Gemini, and Perplexity providers for multi-AI comparison",
