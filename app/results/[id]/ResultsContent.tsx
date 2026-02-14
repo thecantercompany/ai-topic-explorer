@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import WordCloud from "@/components/WordCloud";
 import KeyThemes from "@/components/KeyThemes";
+import QuotedPhrases from "@/components/QuotedPhrases";
 import WordContextModal from "@/components/WordContextModal";
 import EntityList from "@/components/EntityList";
 import CitationList from "@/components/CitationList";
@@ -15,6 +16,7 @@ import { trackEvent } from "@/lib/analytics";
 import type {
   WordCloudWord,
   KeyTheme,
+  QuotedPhrase,
   CombinedEntities,
   CombinedCitation,
   Provider,
@@ -30,8 +32,7 @@ interface Props {
   partialFailureMessage: string | null;
   analysisId: string;
   providerTexts: Record<string, string>;
-  grokWordCloudData: WordCloudWord[] | null;
-  grokKeyThemes: KeyTheme[] | null;
+  grokQuotedPhrases: QuotedPhrase[] | null;
   perplexityRelatedQuestions: string[] | null;
 }
 
@@ -45,17 +46,16 @@ export default function ResultsContent({
   partialFailureMessage,
   analysisId,
   providerTexts,
-  grokWordCloudData,
-  grokKeyThemes,
+  grokQuotedPhrases,
   perplexityRelatedQuestions,
 }: Props) {
   const sections = useMemo(() => [
     { id: "key-themes", label: "Key Themes" },
     { id: "entities", label: "Entities" },
     { id: "citations", label: "Citations" },
-    ...((grokWordCloudData || grokKeyThemes) ? [{ id: "grok-perspective", label: "X/Social" }] : []),
+    ...(grokQuotedPhrases ? [{ id: "grok-perspective", label: "X/Social" }] : []),
     ...(perplexityRelatedQuestions && perplexityRelatedQuestions.length > 0 ? [{ id: "perplexity", label: "Perplexity" }] : []),
-  ], [perplexityRelatedQuestions, grokWordCloudData, grokKeyThemes]);
+  ], [perplexityRelatedQuestions, grokQuotedPhrases]);
   const [copied, setCopied] = useState(false);
   const [contextModal, setContextModal] = useState<{
     word: string;
@@ -259,32 +259,15 @@ export default function ResultsContent({
             </section>
 
             {/* Grok / X Social Perspective */}
-            {(grokWordCloudData || grokKeyThemes) && (
+            {grokQuotedPhrases && grokQuotedPhrases.length > 0 && (
               <section id="grok-perspective" className="mb-10 scroll-mt-20">
-                <h2 className="text-xl font-bold text-[--text-primary] mb-4">
+                <h2 className="text-xl font-bold text-[--text-primary] mb-2">
                   X / Social Perspective
                 </h2>
-                {grokKeyThemes && grokKeyThemes.length > 0 ? (
-                  <div className="glass-tier-2 rounded-2xl p-6">
-                    <p className="text-xs text-[--text-tertiary] mb-4">
-                      Powered by Grok — trained on X/Twitter data for a social media lens on this topic.
-                    </p>
-                    <div className="flex flex-wrap gap-2.5 justify-center overflow-hidden">
-                      {grokKeyThemes.map((theme) => (
-                        <span
-                          key={theme.phrase}
-                          className={`pill-interactive rounded-full font-medium max-w-full truncate ${
-                            { 5: "text-base px-4 py-2", 4: "text-sm px-3.5 py-1.5", 3: "text-sm px-3 py-1.5", 2: "text-xs px-3 py-1", 1: "text-xs px-2.5 py-1" }[theme.relevance] || "text-sm px-3 py-1.5"
-                          }`}
-                        >
-                          {theme.phrase}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ) : grokWordCloudData ? (
-                  <WordCloud words={grokWordCloudData} />
-                ) : null}
+                <p className="text-sm text-[--text-tertiary] mb-4">
+                  Powered by Grok — trained on X/Twitter data for a social media lens on this topic.
+                </p>
+                <QuotedPhrases phrases={grokQuotedPhrases} />
               </section>
             )}
 

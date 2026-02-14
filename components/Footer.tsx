@@ -9,6 +9,8 @@ const CHANGELOG: { date: string; changes: string[] }[] = [
       "Replace Web Perspective with lightweight Perplexity section showing related questions",
       "Show top 10 citations with same-domain companions, compact single-line layout",
       "Cap named entities at 15 per category, sorted by number of mentions",
+      "Show provider pills next to each named entity showing which AI mentioned it",
+      "Redesign Grok X / Social section to show quoted phrases from X/Twitter",
       "Add Grok (xAI) as 5th AI provider with separate X / Social Perspective section",
       "Add changelog modal to footer",
       "Add GA4 analytics, event tracking, and increase max AI response length",

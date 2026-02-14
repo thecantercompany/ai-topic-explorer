@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { calculateWordFrequency, toWordCloudData, topicToWords } from "@/lib/analysis/word-frequency";
+import { toWordCloudData, topicToWords } from "@/lib/analysis/word-frequency";
 import type { AnalysisResult, KeyTheme, Provider } from "@/lib/types";
 import ResultsContent from "./ResultsContent";
 
@@ -78,11 +78,8 @@ export default async function ResultsPage({ params }: Props) {
 
   // Grok-specific analysis (separate from combined — X/Twitter data perspective)
   const grokResponse = result.responses.grok;
-  const grokWordCloudData = grokResponse
-    ? toWordCloudData(calculateWordFrequency(grokResponse.rawText, topicWords))
-    : null;
-  const grokKeyThemes: KeyTheme[] | null = grokResponse?.keyThemes?.length
-    ? grokResponse.keyThemes
+  const grokQuotedPhrases = grokResponse?.quotedPhrases?.length
+    ? grokResponse.quotedPhrases
     : null;
 
   // Perplexity related questions (web search perspective)
@@ -102,8 +99,7 @@ export default async function ResultsPage({ params }: Props) {
       partialFailureMessage={partialFailureMessage}
       analysisId={id}
       providerTexts={providerTexts}
-      grokWordCloudData={grokWordCloudData}
-      grokKeyThemes={grokKeyThemes}
+      grokQuotedPhrases={grokQuotedPhrases}
       perplexityRelatedQuestions={perplexityRelatedQuestions}
     />
   );

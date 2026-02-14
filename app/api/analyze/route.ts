@@ -53,23 +53,34 @@ function getConfiguredProviders(): { provider: Provider; analyze: AnalyzeFn }[] 
 /** Merge multiple AIResponses from subtopic queries into a single AIResponse per provider */
 function mergeProviderResponses(responses: AIResponse[]): AIResponse {
   const rawTexts = responses.map((r) => r.rawText);
-  const allEntities = responses.map((r) => r.entities);
+  const provider = responses[0].provider;
+  const allEntities = responses.map((r) => ({ provider, entities: r.entities }));
   const allCitations = responses.flatMap((r) => r.citations);
   const allKeyThemes = responses.map((r) => r.keyThemes);
   const allUsage = responses.flatMap((r) => r.usage || []);
   const allRelatedQuestions = [
     ...new Set(responses.flatMap((r) => r.relatedQuestions || [])),
   ];
+  const allQuotedPhrases = [
+    ...new Map(
+      responses
+        .flatMap((r) => r.quotedPhrases || [])
+        .map((q) => [q.phrase.toLowerCase(), q] as const)
+    ).values(),
+  ]
+    .sort((a, b) => b.frequency - a.frequency)
+    .slice(0, 15);
 
   return {
-    provider: responses[0].provider,
+    provider,
     rawText: rawTexts.join("\n\n"),
-    entities: mergeEntities(...allEntities),
+    entities: mergeEntities(allEntities),
     citations: allCitations,
     keyThemes: mergeKeyThemes(...allKeyThemes),
     model: responses[0].model,
     usage: allUsage,
     ...(allRelatedQuestions.length > 0 && { relatedQuestions: allRelatedQuestions }),
+    ...(allQuotedPhrases.length > 0 && { quotedPhrases: allQuotedPhrases }),
   };
 }
 
@@ -210,7 +221,7 @@ export async function POST(request: NextRequest) {
         const errors: AnalysisResult["errors"] = {};
         const wordFreqLists: WordFrequency[][] = [];
         const keyThemeLists: KeyTheme[][] = [];
-        const entityLists: ExtractedEntities[] = [];
+        const entityLists: { provider: Provider; entities: ExtractedEntities }[] = [];
         const citationsByProvider: { provider: Provider; citations: Citation[] }[] = [];
         const topicWordSet = topicToWords(topic);
 
@@ -224,7 +235,7 @@ export async function POST(request: NextRequest) {
             if (provider !== "perplexity" && provider !== "grok") {
               wordFreqLists.push(calculateWordFrequency(result.value.rawText, topicWordSet));
               keyThemeLists.push(result.value.keyThemes);
-              entityLists.push(result.value.entities);
+              entityLists.push({ provider, entities: result.value.entities });
             }
 
             citationsByProvider.push({
@@ -263,7 +274,7 @@ export async function POST(request: NextRequest) {
 
         const combinedWordFrequencies = mergeWordFrequencies(...wordFreqLists);
         const combinedKeyThemes = mergeKeyThemes(...keyThemeLists);
-        const combinedEntities = mergeEntities(...entityLists);
+        const combinedEntities = mergeEntities(entityLists);
         const combinedCitations = mergeCitations(citationsByProvider);
 
         const analysisResult: AnalysisResult = {

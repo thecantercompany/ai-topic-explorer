@@ -3,6 +3,7 @@ export type Provider = "claude" | "openai" | "gemini" | "perplexity" | "grok";
 export interface Entity {
   name: string;
   url?: string;
+  providers?: Provider[];
 }
 
 export interface ExtractedEntities {

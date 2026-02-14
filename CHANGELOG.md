@@ -9,7 +9,8 @@ All notable changes to AI Topic Explorer will be documented in this file.
 - Show top 10 citations with same-domain companions instead of capped-at-25 list; compact single-line layout
 - Cap named entities at 15 per category (people/organizations), sorted by number of mentions
 - Add explainer text under Named Entities section header
-- Redesign Grok X / Social Perspective section with inline pill layout
+- Show provider pills (Claude, GPT, Gemini) next to each named entity
+- Redesign Grok X / Social Perspective section to show quoted phrases from X/Twitter
 
 ### Fixed
 - Fix TypeScript type assertion for Perplexity API return_related_questions parameter
