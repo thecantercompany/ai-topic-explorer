@@ -17,6 +17,9 @@ All notable changes to AI Topic Explorer will be documented in this file.
 - Fix TypeScript type assertion for Perplexity API return_related_questions parameter
 
 ### Changed
+- Update site metadata description to include all 5 AI platforms (Claude, ChatGPT, Gemini, Perplexity, Grok)
+- Update OG social card image with 5 provider dots and refreshed tagline
+- Update Apple icon to show 5 dots representing all AI providers
 - Change Grok pill color from blue to red to match X/Twitter branding
 - Remove disclaimer text from X Perspective quoted phrases section
 - Hide changelog link on results page to reduce sidebar clutter

@@ -26,21 +26,30 @@ export default function AppleIcon() {
             gap: "6px",
           }}
         >
-          {/* Three dots representing the 3 AI models */}
-          <div style={{ display: "flex", gap: "8px" }}>
+          {/* Five dots representing the 5 AI models */}
+          <div style={{ display: "flex", gap: "6px" }}>
             <div
               style={{
-                width: "16px",
-                height: "16px",
+                width: "14px",
+                height: "14px",
                 borderRadius: "50%",
-                background: "rgba(255,255,255,0.9)",
+                background: "rgba(255,255,255,0.95)",
                 display: "flex",
               }}
             />
             <div
               style={{
-                width: "16px",
-                height: "16px",
+                width: "14px",
+                height: "14px",
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.85)",
+                display: "flex",
+              }}
+            />
+            <div
+              style={{
+                width: "14px",
+                height: "14px",
                 borderRadius: "50%",
                 background: "rgba(255,255,255,0.7)",
                 display: "flex",
@@ -48,10 +57,19 @@ export default function AppleIcon() {
             />
             <div
               style={{
-                width: "16px",
-                height: "16px",
+                width: "14px",
+                height: "14px",
                 borderRadius: "50%",
-                background: "rgba(255,255,255,0.5)",
+                background: "rgba(255,255,255,0.55)",
+                display: "flex",
+              }}
+            />
+            <div
+              style={{
+                width: "14px",
+                height: "14px",
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.4)",
                 display: "flex",
               }}
             />
