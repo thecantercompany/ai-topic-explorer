@@ -192,9 +192,14 @@ export async function POST(request: NextRequest) {
 
     if (result.status === "fulfilled") {
       responses[provider] = result.value;
-      wordFreqLists.push(calculateWordFrequency(result.value.rawText, topicWordSet));
-      keyThemeLists.push(result.value.keyThemes);
-      entityLists.push(result.value.entities);
+
+      // Perplexity uses web search — only include its citations, not its analysis text
+      if (provider !== "perplexity") {
+        wordFreqLists.push(calculateWordFrequency(result.value.rawText, topicWordSet));
+        keyThemeLists.push(result.value.keyThemes);
+        entityLists.push(result.value.entities);
+      }
+
       citationsByProvider.push({
         provider,
         citations: result.value.citations,

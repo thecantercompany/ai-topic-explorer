@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import FloatingKeywords from "@/components/FloatingKeywords";
 import Footer from "@/components/Footer";
+import { trackEvent } from "@/lib/analytics";
 
 const ALL_TOPICS = [
   // Science & Technology
@@ -262,6 +263,7 @@ export default function Home() {
     }
 
     setIsLoading(true);
+    trackEvent({ action: "topic_searched", params: { topic: trimmedTopic } });
 
     try {
       const response = await fetch("/api/analyze", {
@@ -271,6 +273,7 @@ export default function Home() {
       });
 
       if (response.status === 429) {
+        trackEvent({ action: "analysis_error", params: { error_type: "rate_limit" } });
         setError(
           "You've reached the analysis limit. Please try again in a few minutes."
         );
@@ -279,6 +282,7 @@ export default function Home() {
       }
 
       if (response.status === 503) {
+        trackEvent({ action: "analysis_error", params: { error_type: "unavailable" } });
         setError("Analysis is temporarily unavailable. Please try again later.");
         setIsLoading(false);
         return;
@@ -286,6 +290,7 @@ export default function Home() {
 
       if (!response.ok) {
         const data = await response.json();
+        trackEvent({ action: "analysis_error", params: { error_type: "api_error" } });
         setError(data.error || "Analysis failed. Please try again.");
         setIsLoading(false);
         return;
@@ -293,12 +298,15 @@ export default function Home() {
 
       const data = await response.json();
       if (!data.id) {
+        trackEvent({ action: "analysis_error", params: { error_type: "no_id" } });
         setError("Analysis completed but could not be saved. Please try again.");
         setIsLoading(false);
         return;
       }
+      trackEvent({ action: "analysis_completed", params: { topic: trimmedTopic } });
       router.push(`/results/${data.id}`);
     } catch {
+      trackEvent({ action: "analysis_error", params: { error_type: "network" } });
       setError("Something went wrong. Please try again.");
       setIsLoading(false);
     }
@@ -381,7 +389,10 @@ export default function Home() {
                   {exampleTopics.map((example) => (
                     <button
                       key={example}
-                      onClick={() => setTopic(example)}
+                      onClick={() => {
+                        setTopic(example);
+                        trackEvent({ action: "example_topic_clicked", params: { topic: example } });
+                      }}
                       className="pill-interactive px-4 py-2 rounded-full text-sm"
                       disabled={isLoading}
                     >
@@ -390,7 +401,10 @@ export default function Home() {
                   ))}
                 </div>
                 <button
-                  onClick={() => setShowMethodology(true)}
+                  onClick={() => {
+                    setShowMethodology(true);
+                    trackEvent({ action: "methodology_opened" });
+                  }}
                   className="mt-4 text-[--accent-cyan] hover:text-[--accent-violet] transition-colors underline underline-offset-2"
                 >
                   How does this work?

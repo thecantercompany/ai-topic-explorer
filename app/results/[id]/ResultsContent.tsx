@@ -10,6 +10,7 @@ import CitationList from "@/components/CitationList";
 import ProgressTracker from "@/components/ProgressTracker";
 import Footer from "@/components/Footer";
 import { findWordContext, type WordContextMatch } from "@/lib/analysis/word-context";
+import { trackEvent } from "@/lib/analytics";
 import type {
   WordCloudWord,
   KeyTheme,
@@ -55,13 +56,24 @@ export default function ResultsContent({
 
   const handleWordClick = useCallback(
     (word: string) => {
+      trackEvent({ action: "word_cloud_click", params: { word } });
       const matches = findWordContext(word, providerTexts);
       setContextModal({ word, matches });
     },
     [providerTexts]
   );
 
+  const handleThemeClick = useCallback(
+    (theme: string) => {
+      trackEvent({ action: "theme_click", params: { theme } });
+      const matches = findWordContext(theme, providerTexts);
+      setContextModal({ word: theme, matches });
+    },
+    [providerTexts]
+  );
+
   const handleShare = async () => {
+    trackEvent({ action: "share_clicked" });
     const url = `${window.location.origin}/results/${analysisId}`;
     try {
       await navigator.clipboard.writeText(url);
@@ -98,6 +110,7 @@ export default function ResultsContent({
               </button>
               <Link
                 href="/"
+                onClick={() => trackEvent({ action: "new_topic_from_results" })}
                 className="btn-primary px-3 py-1.5 rounded-full text-xs"
               >
                 New Topic
@@ -186,6 +199,7 @@ export default function ResultsContent({
             </button>
             <Link
               href="/"
+              onClick={() => trackEvent({ action: "new_topic_from_results" })}
               className="btn-primary w-full px-4 py-2.5 rounded-xl text-sm text-center"
             >
               New Topic
@@ -211,7 +225,7 @@ export default function ResultsContent({
                 Key Themes
               </h2>
               {keyThemes.length > 0 ? (
-                <KeyThemes themes={keyThemes} onThemeClick={handleWordClick} />
+                <KeyThemes themes={keyThemes} onThemeClick={handleThemeClick} />
               ) : (
                 <WordCloud words={wordCloudData} onWordClick={handleWordClick} />
               )}

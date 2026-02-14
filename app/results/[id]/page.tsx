@@ -65,9 +65,10 @@ export default async function ResultsPage({ params }: Props) {
     partialFailureMessage = `${failedNames} unavailable — showing results from ${succeededNames}`;
   }
 
-  // Build provider raw text map for word context lookups
+  // Build provider raw text map for word context lookups (exclude Perplexity — web search, not training data)
   const providerTexts: Record<string, string> = {};
   for (const provider of allProviders) {
+    if (provider === "perplexity") continue;
     const resp = result.responses[provider];
     if (resp) {
       providerTexts[provider] = resp.rawText;

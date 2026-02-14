@@ -10,7 +10,7 @@ const client = new OpenAI({
 export async function analyzeWithPerplexity(query: string): Promise<AIResponse> {
   const completion = await client.chat.completions.create({
     model: "sonar",
-    max_tokens: 4096,
+    max_tokens: 8192,
     messages: [
       {
         role: "user",

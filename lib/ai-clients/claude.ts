@@ -9,7 +9,7 @@ const client = new Anthropic({
 export async function analyzeWithClaude(query: string): Promise<AIResponse> {
   const message = await client.messages.create({
     model: "claude-sonnet-4-5-20250929",
-    max_tokens: 4096,
+    max_tokens: 8192,
     messages: [
       {
         role: "user",
