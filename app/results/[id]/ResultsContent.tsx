@@ -214,7 +214,7 @@ export default function ResultsContent({
             </Link>
           </div>
 
-          <Footer />
+          <Footer hideChangelog />
         </aside>
 
         {/* Main content */}

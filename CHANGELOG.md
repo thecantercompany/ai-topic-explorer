@@ -5,6 +5,7 @@ All notable changes to AI Topic Explorer will be documented in this file.
 ## [2026-02-14]
 
 ### Changed
+- Hide changelog link on results page to reduce sidebar clutter
 - Replace bulky Web Perspective section with lightweight Perplexity section showing only related questions
 - Show top 10 citations with same-domain companions instead of capped-at-25 list; compact single-line layout
 - Cap named entities at 15 per category (people/organizations), sorted by number of mentions

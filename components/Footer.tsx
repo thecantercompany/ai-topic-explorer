@@ -6,6 +6,7 @@ const CHANGELOG: { date: string; changes: string[] }[] = [
   {
     date: "Feb 14",
     changes: [
+      "Hide changelog link on results page to reduce sidebar clutter",
       "Replace Web Perspective with lightweight Perplexity section showing related questions",
       "Show top 10 citations with same-domain companions, compact single-line layout",
       "Cap named entities at 15 per category, sorted by number of mentions",
@@ -28,7 +29,7 @@ const CHANGELOG: { date: string; changes: string[] }[] = [
   },
 ];
 
-export default function Footer() {
+export default function Footer({ hideChangelog = false }: { hideChangelog?: boolean } = {}) {
   const [showChangelog, setShowChangelog] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -54,13 +55,17 @@ export default function Footer() {
           >
             The Canter Company
           </a>
-          <span className="mx-1.5">&middot;</span>
-          <button
-            onClick={() => setShowChangelog(true)}
-            className="hover:text-[--accent-cyan] transition-colors underline underline-offset-2"
-          >
-            Changelog
-          </button>
+          {!hideChangelog && (
+            <>
+              <span className="mx-1.5">&middot;</span>
+              <button
+                onClick={() => setShowChangelog(true)}
+                className="hover:text-[--accent-cyan] transition-colors underline underline-offset-2"
+              >
+                Changelog
+              </button>
+            </>
+          )}
         </p>
       </footer>
 
