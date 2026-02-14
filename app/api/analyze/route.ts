@@ -28,6 +28,21 @@ import type {
 
 type AnalyzeFn = (query: string) => Promise<AIResponse>;
 
+const PROVIDER_TIMEOUT_MS = 45_000; // 45 seconds per provider query
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`${label} timed out after ${ms / 1000}s`)),
+      ms
+    );
+    promise.then(
+      (val) => { clearTimeout(timer); resolve(val); },
+      (err) => { clearTimeout(timer); reject(err); }
+    );
+  });
+}
+
 function getConfiguredProviders(): { provider: Provider; analyze: AnalyzeFn }[] {
   const providers: { provider: Provider; analyze: AnalyzeFn }[] = [];
 
@@ -177,7 +192,9 @@ export async function POST(request: NextRequest) {
           providers.map(async ({ provider, analyze }) => {
             try {
               const queryResults = await Promise.allSettled(
-                expandedQueries.map((query) => analyze(query))
+                expandedQueries.map((query) =>
+                  withTimeout(analyze(query), PROVIDER_TIMEOUT_MS, `${provider}`)
+                )
               );
 
               const successful = queryResults

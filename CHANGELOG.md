@@ -4,6 +4,10 @@ All notable changes to AI Topic Explorer will be documented in this file.
 
 ## [2026-02-14]
 
+### Fixed
+- Switch Gemini from thinking model (2.5 Flash) to non-thinking model (2.0 Flash) to prevent timeouts
+- Add 45-second per-provider timeouts so one slow AI provider can't stall the entire analysis
+
 ### Changed
 - Hide changelog link on results page to reduce sidebar clutter
 - Replace bulky Web Perspective section with lightweight Perplexity section showing only related questions
