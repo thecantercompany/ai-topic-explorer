@@ -136,7 +136,7 @@ export default function OGImage() {
               display: "flex",
             }}
           >
-            See what Claude, GPT, and Gemini collectively know about any topic
+            See what Claude, ChatGPT, and Gemini collectively know about any topic
           </div>
 
           {/* URL pill */}

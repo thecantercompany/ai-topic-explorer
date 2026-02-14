@@ -52,20 +52,29 @@ export function mergeCitations(
   // Find companions: remaining citations whose domain matches a primary
   const companions = rest.filter((c) => primaryDomains.has(c.domain));
 
-  // Build final list: walk primaries in order, insert companions after
-  // the first primary from each domain.
+  // Build final list: walk primaries in order, grouping all same-domain
+  // primaries together and inserting companions after the first occurrence.
   const result: CombinedCitation[] = [];
   const processedDomains = new Set<string>();
 
   for (const primary of primaries) {
+    if (processedDomains.has(primary.domain)) continue;
+    processedDomains.add(primary.domain);
+
+    // Add this primary
     result.push(primary);
-    if (!processedDomains.has(primary.domain)) {
-      processedDomains.add(primary.domain);
-      // Add all companions from this domain
-      for (const companion of companions) {
-        if (companion.domain === primary.domain) {
-          result.push(companion);
-        }
+
+    // Add other primaries from the same domain
+    for (const other of primaries) {
+      if (other !== primary && other.domain === primary.domain) {
+        result.push(other);
+      }
+    }
+
+    // Add companions from this domain
+    for (const companion of companions) {
+      if (companion.domain === primary.domain) {
+        result.push(companion);
       }
     }
   }

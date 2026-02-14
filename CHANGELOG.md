@@ -11,6 +11,9 @@ All notable changes to AI Topic Explorer will be documented in this file.
 - Add explainer text under Named Entities section header
 - Show provider pills (Claude, GPT, Gemini) next to each named entity
 - Redesign Grok X / Social Perspective section to show quoted phrases from X/Twitter
+- Rename section to "X Perspective" with Grok platform pill, clarify phrases are AI-generated
+- Cut X Perspective phrases from 15 to 8 and request longer, fuller talking points
+- Add explainer subtitles to Citations and Related Questions sections
 
 ### Fixed
 - Fix TypeScript type assertion for Perplexity API return_related_questions parameter

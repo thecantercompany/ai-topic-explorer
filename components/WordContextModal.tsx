@@ -10,11 +10,11 @@ interface Props {
 }
 
 const PROVIDER_COLORS: Record<string, string> = {
-  claude: "bg-orange-100 text-orange-700",
-  openai: "bg-emerald-100 text-emerald-700",
-  gemini: "bg-blue-100 text-blue-700",
-  perplexity: "bg-purple-100 text-purple-700",
-  grok: "bg-red-100 text-red-700",
+  claude: "bg-orange-50 text-orange-400",
+  openai: "bg-emerald-50 text-emerald-400",
+  gemini: "bg-blue-50 text-blue-400",
+  perplexity: "bg-purple-50 text-purple-400",
+  grok: "bg-red-50 text-red-400",
 };
 
 function escapeRegex(str: string): string {
@@ -88,7 +88,7 @@ export default function WordContextModal({ word, matches, onClose }: Props) {
               <div key={match.provider}>
                 <div className="flex items-center gap-2 mb-3">
                   <span
-                    className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${PROVIDER_COLORS[match.provider] || "bg-gray-100 text-gray-700"}`}
+                    className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${PROVIDER_COLORS[match.provider] || "bg-gray-50 text-gray-400"}`}
                   >
                     {match.providerLabel}
                   </span>

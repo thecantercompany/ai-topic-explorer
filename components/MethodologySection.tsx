@@ -6,7 +6,7 @@ const platforms = [
     color: "bg-orange-100 text-orange-700",
   },
   {
-    name: "GPT",
+    name: "ChatGPT",
     provider: "OpenAI",
     description: "Broad knowledge base with strong general coverage.",
     color: "bg-green-100 text-green-700",

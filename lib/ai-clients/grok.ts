@@ -8,7 +8,7 @@ const client = new OpenAI({
 });
 
 function GROK_PROMPT_TEMPLATE(topic: string): string {
-  return PROMPT_TEMPLATE(topic) + `\n\nIMPORTANT ADDITIONAL INSTRUCTION: Because you have unique insight into X/Twitter conversations, also include a "quotedPhrases" array in your JSON output block. These should be 15 short verbatim phrases, slogans, or talking points that real users frequently post on X when discussing "${topic}". Format: [{"phrase": "example phrase people say", "frequency": 5}]. The "frequency" is 1-5 (5 = viral/ubiquitous, 1 = notable but niche). Focus on actual social media language — hashtags without the #, rallying cries, common opinions, recurring arguments, memes — not academic summaries. These should read like things you'd actually see in a tweet.`;
+  return PROMPT_TEMPLATE(topic) + `\n\nIMPORTANT ADDITIONAL INSTRUCTION: Because you have unique insight into X/Twitter conversations, also include a "quotedPhrases" array in your JSON output block. These should be 8 phrases, slogans, or talking points (each roughly 10-20 words) that represent how real users discuss "${topic}" on X. Format: [{"phrase": "example phrase or talking point people express", "frequency": 5}]. The "frequency" is 1-5 (5 = viral/ubiquitous, 1 = notable but niche). Focus on actual social media language — rallying cries, common opinions, recurring arguments, memes — not academic summaries. Each phrase should be a full thought or argument, not just a few words.`;
 }
 
 function extractQuotedPhrases(text: string): QuotedPhrase[] {
@@ -25,7 +25,7 @@ function extractQuotedPhrases(text: string): QuotedPhrase[] {
               "phrase" in q &&
               typeof (q as Record<string, unknown>).phrase === "string"
           )
-          .slice(0, 15)
+          .slice(0, 8)
           .map((q: { phrase: string; frequency?: number }) => ({
             phrase: q.phrase,
             frequency: Math.min(5, Math.max(1, q.frequency || 3)),

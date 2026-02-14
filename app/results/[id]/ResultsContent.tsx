@@ -53,8 +53,8 @@ export default function ResultsContent({
     { id: "key-themes", label: "Key Themes" },
     { id: "entities", label: "Entities" },
     { id: "citations", label: "Citations" },
-    ...(grokQuotedPhrases ? [{ id: "grok-perspective", label: "X/Social" }] : []),
-    ...(perplexityRelatedQuestions && perplexityRelatedQuestions.length > 0 ? [{ id: "perplexity", label: "Perplexity" }] : []),
+    ...(grokQuotedPhrases ? [{ id: "x-perspective", label: "X Perspective" }] : []),
+    ...(perplexityRelatedQuestions && perplexityRelatedQuestions.length > 0 ? [{ id: "perplexity", label: "Related Questions" }] : []),
   ], [perplexityRelatedQuestions, grokQuotedPhrases]);
   const [copied, setCopied] = useState(false);
   const [contextModal, setContextModal] = useState<{
@@ -252,20 +252,28 @@ export default function ResultsContent({
 
             {/* Citations */}
             <section id="citations" className="mb-10 scroll-mt-20">
-              <h2 className="text-xl font-bold text-[--text-primary] mb-4">
+              <h2 className="text-xl font-bold text-[--text-primary] mb-1">
                 Citations
               </h2>
+              <p className="text-sm text-[--text-tertiary] mb-4">
+                Top 10 sources ranked by AI model agreement. Additional pages from the same domain are grouped below.
+              </p>
               <CitationList citations={citations} />
             </section>
 
-            {/* Grok / X Social Perspective */}
+            {/* X Perspective */}
             {grokQuotedPhrases && grokQuotedPhrases.length > 0 && (
-              <section id="grok-perspective" className="mb-10 scroll-mt-20">
-                <h2 className="text-xl font-bold text-[--text-primary] mb-2">
-                  X / Social Perspective
-                </h2>
+              <section id="x-perspective" className="mb-10 scroll-mt-20">
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="text-xl font-bold text-[--text-primary]">
+                    X Perspective
+                  </h2>
+                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-400">
+                    Grok
+                  </span>
+                </div>
                 <p className="text-sm text-[--text-tertiary] mb-4">
-                  Powered by Grok — trained on X/Twitter data for a social media lens on this topic.
+                  These are phrases, slogans, or talking points generated from X/Twitter.
                 </p>
                 <QuotedPhrases phrases={grokQuotedPhrases} />
               </section>
@@ -274,9 +282,17 @@ export default function ResultsContent({
             {/* Perplexity — related questions */}
             {perplexityRelatedQuestions && perplexityRelatedQuestions.length > 0 && (
               <section id="perplexity" className="mb-10 scroll-mt-20">
-                <h2 className="text-xl font-bold text-[--text-primary] mb-4">
-                  Perplexity
-                </h2>
+                <div className="flex items-center gap-2 mb-1">
+                  <h2 className="text-xl font-bold text-[--text-primary]">
+                    Related Questions
+                  </h2>
+                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-400">
+                    Perplexity
+                  </span>
+                </div>
+                <p className="text-sm text-[--text-tertiary] mb-4">
+                  Suggested by Perplexity based on real-time web search for this topic.
+                </p>
                 <Perplexity relatedQuestions={perplexityRelatedQuestions} />
               </section>
             )}

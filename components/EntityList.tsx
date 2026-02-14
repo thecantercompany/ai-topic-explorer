@@ -6,18 +6,18 @@ interface Props {
 
 const PROVIDER_LABELS: Record<Provider, string> = {
   claude: "Claude",
-  openai: "GPT",
+  openai: "ChatGPT",
   gemini: "Gemini",
   perplexity: "Perplexity",
   grok: "Grok",
 };
 
 const PROVIDER_COLORS: Record<Provider, string> = {
-  claude: "bg-orange-100 text-orange-700",
-  openai: "bg-emerald-100 text-emerald-700",
-  gemini: "bg-blue-100 text-blue-700",
-  perplexity: "bg-purple-100 text-purple-700",
-  grok: "bg-red-100 text-red-700",
+  claude: "bg-orange-50 text-orange-400",
+  openai: "bg-emerald-50 text-emerald-400",
+  gemini: "bg-blue-50 text-blue-400",
+  perplexity: "bg-purple-50 text-purple-400",
+  grok: "bg-red-50 text-red-400",
 };
 
 const CATEGORIES: { key: keyof CombinedEntities; label: string }[] = [

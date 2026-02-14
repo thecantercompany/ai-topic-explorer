@@ -8,7 +8,7 @@ export interface WordContextMatch {
 
 const PROVIDER_LABELS: Record<Provider, string> = {
   claude: "Claude",
-  openai: "GPT",
+  openai: "ChatGPT",
   gemini: "Gemini",
   perplexity: "Perplexity",
   grok: "Grok",
