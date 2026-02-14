@@ -268,7 +268,7 @@ export default function ResultsContent({
                   <h2 className="text-xl font-bold text-[--text-primary]">
                     X Perspective
                   </h2>
-                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-400">
+                  <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-50 text-red-400">
                     Grok
                   </span>
                 </div>

@@ -28,7 +28,7 @@ import type {
 
 type AnalyzeFn = (query: string) => Promise<AIResponse>;
 
-const PROVIDER_TIMEOUT_MS = 45_000; // 45 seconds per provider query
+const PROVIDER_TIMEOUT_MS = 60_000; // 60 seconds per provider query
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise((resolve, reject) => {

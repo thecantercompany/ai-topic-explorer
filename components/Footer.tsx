@@ -6,6 +6,9 @@ const CHANGELOG: { date: string; changes: string[] }[] = [
   {
     date: "Feb 14",
     changes: [
+      "Disable Gemini safety filters so sensitive topics aren't blocked",
+      "Increase provider timeout to 60s so Claude has enough time to respond",
+      "Change Grok pill to red to match X/Twitter branding",
       "Add stability improvements: DB save retry, client-side timeout, abort on disconnect, data validation",
       "Fix analysis timeout by switching Gemini to faster model and adding per-provider timeouts",
       "Hide changelog link on results page to reduce sidebar clutter",

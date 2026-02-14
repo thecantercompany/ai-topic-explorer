@@ -5,6 +5,8 @@ All notable changes to AI Topic Explorer will be documented in this file.
 ## [2026-02-14]
 
 ### Fixed
+- Disable Gemini safety filters so sensitive topics (politics, social issues) aren't blocked
+- Increase per-provider timeout from 45s to 60s so Claude has enough time to respond
 - Switch Gemini from thinking model (2.5 Flash) to non-thinking model (2.0 Flash) to prevent timeouts
 - Add 45-second per-provider timeouts so one slow AI provider can't stall the entire analysis
 - Retry database save on failure instead of navigating to broken results page
@@ -15,6 +17,8 @@ All notable changes to AI Topic Explorer will be documented in this file.
 - Fix TypeScript type assertion for Perplexity API return_related_questions parameter
 
 ### Changed
+- Change Grok pill color from blue to red to match X/Twitter branding
+- Remove disclaimer text from X Perspective quoted phrases section
 - Hide changelog link on results page to reduce sidebar clutter
 - Replace bulky Web Perspective section with lightweight Perplexity section showing only related questions
 - Show top 10 citations with same-domain companions instead of capped-at-25 list; compact single-line layout
