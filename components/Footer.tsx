@@ -2,30 +2,21 @@
 
 import { useState, useRef, useEffect } from "react";
 
-const CHANGELOG = [
+const CHANGELOG: { date: string; changes: string[] }[] = [
   {
-    date: "Feb 14, 11:21 AM",
-    description: "Add changelog modal to footer",
-  },
-  {
-    date: "Feb 14, 11:18 AM",
-    description:
+    date: "Feb 14",
+    changes: [
+      "Add changelog modal to footer",
       "Add GA4 analytics, event tracking, and increase max AI response length",
-  },
-  {
-    date: "Feb 14, 10:55 AM",
-    description:
       "Add OpenAI, Gemini, and Perplexity providers for multi-AI comparison",
+    ],
   },
   {
-    date: "Feb 13, 6:50 AM",
-    description:
+    date: "Feb 13",
+    changes: [
       "Fix mobile overflow on Key Themes, Citations, and main content area",
-  },
-  {
-    date: "Feb 13, 12:02 AM",
-    description:
       "Add OG/Twitter metadata, expand floating keywords, and improve UI polish",
+    ],
   },
 ];
 
@@ -90,15 +81,22 @@ export default function Footer() {
               Changelog
             </h2>
 
-            <div className="space-y-4">
-              {CHANGELOG.map((entry, i) => (
-                <div key={i} className="flex gap-3">
-                  <span className="text-xs font-semibold text-[--accent-cyan] whitespace-nowrap pt-0.5">
-                    {entry.date}
-                  </span>
-                  <p className="text-sm text-[--text-secondary] leading-relaxed">
-                    {entry.description}
+            <div className="space-y-5">
+              {CHANGELOG.slice(0, 5).map((day, i) => (
+                <div key={i}>
+                  <p className="text-xs font-semibold text-[--accent-cyan] mb-1.5">
+                    {day.date}
                   </p>
+                  <ul className="space-y-1 pl-3">
+                    {day.changes.map((change, j) => (
+                      <li
+                        key={j}
+                        className="text-sm text-[--text-secondary] leading-relaxed list-disc"
+                      >
+                        {change}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               ))}
             </div>

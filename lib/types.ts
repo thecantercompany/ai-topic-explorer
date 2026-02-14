@@ -49,6 +49,7 @@ export interface WordCloudWord {
 export interface CombinedCitation {
   title: string;
   url: string;
+  domain: string;
   providers: Provider[];
 }
 
