@@ -121,149 +121,183 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Step 1: Query expansion — generate subtopic queries
-  const allUsage: TokenUsage[] = [];
-  let expandedQueries: string[];
-  try {
-    const expansion = await expandQuery(topic);
-    expandedQueries = expansion.queries;
-    if (expansion.usage.inputTokens > 0) {
-      allUsage.push(expansion.usage);
-    }
-    console.log(
-      `[Query Expansion] "${topic}" → ${expandedQueries.length} queries:`,
-      expandedQueries
-    );
-  } catch (e) {
-    console.warn("Query expansion failed, using original topic:", e);
-    expandedQueries = [topic];
-  }
+  // Stream SSE events for real-time progress
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      function emit(event: Record<string, unknown>) {
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+      }
 
-  // Step 2: Run all queries × all providers in parallel
-  // For each provider, run all expanded queries, then merge into one AIResponse
-  const providerResults = await Promise.allSettled(
-    providers.map(async ({ provider, analyze }) => {
-      const queryResults = await Promise.allSettled(
-        expandedQueries.map((query) => analyze(query))
-      );
+      try {
+        // Step 1: Query expansion
+        emit({ stage: "expanding" });
 
-      const successful = queryResults
-        .filter(
-          (r): r is PromiseFulfilledResult<AIResponse> =>
-            r.status === "fulfilled"
-        )
-        .map((r) => r.value);
+        const allUsage: TokenUsage[] = [];
+        let expandedQueries: string[];
+        try {
+          const expansion = await expandQuery(topic);
+          expandedQueries = expansion.queries;
+          if (expansion.usage.inputTokens > 0) {
+            allUsage.push(expansion.usage);
+          }
+          console.log(
+            `[Query Expansion] "${topic}" → ${expandedQueries.length} queries:`,
+            expandedQueries
+          );
+        } catch (e) {
+          console.warn("Query expansion failed, using original topic:", e);
+          expandedQueries = [topic];
+        }
 
-      const failed = queryResults.filter((r) => r.status === "rejected");
-      if (failed.length > 0) {
-        console.warn(
-          `[${provider}] ${failed.length}/${expandedQueries.length} subtopic queries failed`
+        // Step 2: Run all queries × all providers in parallel
+        const providerNames = providers.map((p) => p.provider);
+        emit({ stage: "querying", providers: providerNames });
+
+        const providerResults = await Promise.allSettled(
+          providers.map(async ({ provider, analyze }) => {
+            try {
+              const queryResults = await Promise.allSettled(
+                expandedQueries.map((query) => analyze(query))
+              );
+
+              const successful = queryResults
+                .filter(
+                  (r): r is PromiseFulfilledResult<AIResponse> =>
+                    r.status === "fulfilled"
+                )
+                .map((r) => r.value);
+
+              const failed = queryResults.filter((r) => r.status === "rejected");
+              if (failed.length > 0) {
+                console.warn(
+                  `[${provider}] ${failed.length}/${expandedQueries.length} subtopic queries failed`
+                );
+              }
+
+              if (successful.length === 0) {
+                throw new Error(
+                  `All ${expandedQueries.length} subtopic queries failed for ${provider}`
+                );
+              }
+
+              const merged = mergeProviderResponses(successful);
+              emit({ stage: "provider_done", provider });
+              return merged;
+            } catch (err) {
+              emit({ stage: "provider_failed", provider });
+              throw err;
+            }
+          })
         );
-      }
 
-      if (successful.length === 0) {
-        throw new Error(
-          `All ${expandedQueries.length} subtopic queries failed for ${provider}`
+        // Process results
+        const responses: AnalysisResult["responses"] = {
+          claude: null,
+          openai: null,
+          gemini: null,
+          perplexity: null,
+        };
+        const errors: AnalysisResult["errors"] = {};
+        const wordFreqLists: WordFrequency[][] = [];
+        const keyThemeLists: KeyTheme[][] = [];
+        const entityLists: ExtractedEntities[] = [];
+        const citationsByProvider: { provider: Provider; citations: Citation[] }[] = [];
+        const topicWordSet = topicToWords(topic);
+
+        for (let i = 0; i < providers.length; i++) {
+          const { provider } = providers[i];
+          const result = providerResults[i];
+
+          if (result.status === "fulfilled") {
+            responses[provider] = result.value;
+
+            if (provider !== "perplexity") {
+              wordFreqLists.push(calculateWordFrequency(result.value.rawText, topicWordSet));
+              keyThemeLists.push(result.value.keyThemes);
+              entityLists.push(result.value.entities);
+            }
+
+            citationsByProvider.push({
+              provider,
+              citations: result.value.citations,
+            });
+            if (result.value.usage) {
+              allUsage.push(...result.value.usage);
+            }
+          } else {
+            errors[provider] = result.reason?.message || "Analysis failed";
+          }
+        }
+
+        // Log total usage
+        const totalInput = allUsage.reduce((sum, u) => sum + u.inputTokens, 0);
+        const totalOutput = allUsage.reduce((sum, u) => sum + u.outputTokens, 0);
+        const expansionUsage = allUsage.filter((u) => u.purpose === "expansion");
+        const analysisUsage = allUsage.filter((u) => u.purpose === "analysis");
+        console.log(
+          `[Token Usage] Total: ${totalInput} in / ${totalOutput} out | ` +
+            `Expansion: ${expansionUsage.reduce((s, u) => s + u.inputTokens + u.outputTokens, 0)} | ` +
+            `Analysis: ${analysisUsage.reduce((s, u) => s + u.inputTokens + u.outputTokens, 0)}`
         );
+
+        // Check if all providers failed
+        const successCount = Object.values(responses).filter(Boolean).length;
+        if (successCount === 0) {
+          emit({ stage: "error", message: "All AI providers failed" });
+          controller.close();
+          return;
+        }
+
+        // Step 3: Merge results
+        emit({ stage: "merging" });
+
+        const combinedWordFrequencies = mergeWordFrequencies(...wordFreqLists);
+        const combinedKeyThemes = mergeKeyThemes(...keyThemeLists);
+        const combinedEntities = mergeEntities(...entityLists);
+        const combinedCitations = mergeCitations(citationsByProvider);
+
+        const analysisResult: AnalysisResult = {
+          topic,
+          expandedQueries,
+          responses,
+          errors,
+          combinedWordFrequencies,
+          combinedKeyThemes,
+          combinedEntities,
+          combinedCitations,
+          tokenUsage: allUsage,
+        };
+
+        // Save to database
+        let analysisId: string | null = null;
+        try {
+          const analysis = await prisma.analysis.create({
+            data: {
+              topic,
+              result: JSON.parse(JSON.stringify(analysisResult)),
+            },
+          });
+          analysisId = analysis.id;
+        } catch (e) {
+          console.error("Failed to save analysis to database:", e);
+        }
+
+        emit({ stage: "complete", id: analysisId });
+      } catch (err) {
+        console.error("Analysis stream error:", err);
+        emit({ stage: "error", message: "Analysis failed. Please try again." });
+      } finally {
+        controller.close();
       }
+    },
+  });
 
-      return mergeProviderResponses(successful);
-    })
-  );
-
-  // Process results
-  const responses: AnalysisResult["responses"] = {
-    claude: null,
-    openai: null,
-    gemini: null,
-    perplexity: null,
-  };
-  const errors: AnalysisResult["errors"] = {};
-  const wordFreqLists: WordFrequency[][] = [];
-  const keyThemeLists: KeyTheme[][] = [];
-  const entityLists: ExtractedEntities[] = [];
-  const citationsByProvider: { provider: Provider; citations: Citation[] }[] =
-    [];
-  const topicWordSet = topicToWords(topic);
-
-  for (let i = 0; i < providers.length; i++) {
-    const { provider } = providers[i];
-    const result = providerResults[i];
-
-    if (result.status === "fulfilled") {
-      responses[provider] = result.value;
-
-      // Perplexity uses web search — only include its citations, not its analysis text
-      if (provider !== "perplexity") {
-        wordFreqLists.push(calculateWordFrequency(result.value.rawText, topicWordSet));
-        keyThemeLists.push(result.value.keyThemes);
-        entityLists.push(result.value.entities);
-      }
-
-      citationsByProvider.push({
-        provider,
-        citations: result.value.citations,
-      });
-      // Collect token usage from all subtopic calls
-      if (result.value.usage) {
-        allUsage.push(...result.value.usage);
-      }
-    } else {
-      errors[provider] = result.reason?.message || "Analysis failed";
-    }
-  }
-
-  // Log total usage
-  const totalInput = allUsage.reduce((sum, u) => sum + u.inputTokens, 0);
-  const totalOutput = allUsage.reduce((sum, u) => sum + u.outputTokens, 0);
-  const expansionUsage = allUsage.filter((u) => u.purpose === "expansion");
-  const analysisUsage = allUsage.filter((u) => u.purpose === "analysis");
-  console.log(
-    `[Token Usage] Total: ${totalInput} in / ${totalOutput} out | ` +
-      `Expansion: ${expansionUsage.reduce((s, u) => s + u.inputTokens + u.outputTokens, 0)} | ` +
-      `Analysis: ${analysisUsage.reduce((s, u) => s + u.inputTokens + u.outputTokens, 0)}`
-  );
-
-  // Check if all providers failed
-  const successCount = Object.values(responses).filter(Boolean).length;
-  if (successCount === 0) {
-    return NextResponse.json(
-      { error: "All AI providers failed", details: errors },
-      { status: 500 }
-    );
-  }
-
-  // Merge results (topic words already excluded during frequency calculation)
-  const combinedWordFrequencies = mergeWordFrequencies(...wordFreqLists);
-  const combinedKeyThemes = mergeKeyThemes(...keyThemeLists);
-  const combinedEntities = mergeEntities(...entityLists);
-  const combinedCitations = mergeCitations(citationsByProvider);
-
-  const analysisResult: AnalysisResult = {
-    topic,
-    expandedQueries,
-    responses,
-    errors,
-    combinedWordFrequencies,
-    combinedKeyThemes,
-    combinedEntities,
-    combinedCitations,
-    tokenUsage: allUsage,
-  };
-
-  // Save to database
-  let analysisId: string | null = null;
-  try {
-    const analysis = await prisma.analysis.create({
-      data: {
-        topic,
-        result: JSON.parse(JSON.stringify(analysisResult)),
-      },
-    });
-    analysisId = analysis.id;
-  } catch (e) {
-    console.error("Failed to save analysis to database:", e);
-  }
-
-  return NextResponse.json({ id: analysisId, ...analysisResult });
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
 }

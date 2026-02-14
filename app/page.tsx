@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import FloatingKeywords from "@/components/FloatingKeywords";
 import Footer from "@/components/Footer";
+import AnalysisProgressPanel from "@/components/AnalysisProgressPanel";
 import { trackEvent } from "@/lib/analytics";
 
 const ALL_TOPICS = [
@@ -219,14 +220,26 @@ function pickRandom<T>(arr: T[], count: number): T[] {
   return shuffled.slice(0, count);
 }
 
+type ProviderStatus = "pending" | "loading" | "done" | "failed";
+type Stage = "expanding" | "querying" | "merging" | "complete" | "error";
+
+interface ProgressState {
+  active: boolean;
+  stage: Stage;
+  providers: Record<string, ProviderStatus>;
+  elapsedSeconds: number;
+  errorMessage?: string;
+}
+
 export default function Home() {
   const [topic, setTopic] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showMethodology, setShowMethodology] = useState(false);
-  const [showWaitTooltip, setShowWaitTooltip] = useState(false);
+  const [progress, setProgress] = useState<ProgressState | null>(null);
   const router = useRouter();
   const exampleTopics = useMemo(() => pickRandom(ALL_TOPICS, 5), []);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const getPlaceholderTopic = useCallback(() => {
     const remaining = ALL_TOPICS.filter((t) => !exampleTopics.includes(t));
@@ -243,14 +256,25 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [getPlaceholderTopic]);
 
+  // Elapsed timer
   useEffect(() => {
-    if (!isLoading) {
-      setShowWaitTooltip(false);
-      return;
+    if (progress?.active) {
+      timerRef.current = setInterval(() => {
+        setProgress((prev) =>
+          prev ? { ...prev, elapsedSeconds: prev.elapsedSeconds + 1 } : prev
+        );
+      }, 1000);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
-    const timer = setTimeout(() => setShowWaitTooltip(true), 7000);
-    return () => clearTimeout(timer);
-  }, [isLoading]);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [progress?.active]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -263,6 +287,12 @@ export default function Home() {
     }
 
     setIsLoading(true);
+    setProgress({
+      active: true,
+      stage: "expanding",
+      providers: {},
+      elapsedSeconds: 0,
+    });
     trackEvent({ action: "topic_searched", params: { topic: trimmedTopic } });
 
     try {
@@ -272,43 +302,116 @@ export default function Home() {
         body: JSON.stringify({ topic: trimmedTopic }),
       });
 
-      if (response.status === 429) {
-        trackEvent({ action: "analysis_error", params: { error_type: "rate_limit" } });
-        setError(
-          "You've reached the analysis limit. Please try again in a few minutes."
-        );
-        setIsLoading(false);
-        return;
-      }
-
-      if (response.status === 503) {
-        trackEvent({ action: "analysis_error", params: { error_type: "unavailable" } });
-        setError("Analysis is temporarily unavailable. Please try again later.");
-        setIsLoading(false);
-        return;
-      }
-
+      // Handle non-streaming error responses (rate limit, 503, validation)
       if (!response.ok) {
-        const data = await response.json();
-        trackEvent({ action: "analysis_error", params: { error_type: "api_error" } });
-        setError(data.error || "Analysis failed. Please try again.");
+        if (response.status === 429) {
+          trackEvent({ action: "analysis_error", params: { error_type: "rate_limit" } });
+          setError("You've reached the analysis limit. Please try again in a few minutes.");
+        } else if (response.status === 503) {
+          trackEvent({ action: "analysis_error", params: { error_type: "unavailable" } });
+          setError("Analysis is temporarily unavailable. Please try again later.");
+        } else {
+          const data = await response.json();
+          trackEvent({ action: "analysis_error", params: { error_type: "api_error" } });
+          setError(data.error || "Analysis failed. Please try again.");
+        }
         setIsLoading(false);
+        setProgress(null);
         return;
       }
 
-      const data = await response.json();
-      if (!data.id) {
-        trackEvent({ action: "analysis_error", params: { error_type: "no_id" } });
-        setError("Analysis completed but could not be saved. Please try again.");
-        setIsLoading(false);
-        return;
+      // Read SSE stream
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const chunks = buffer.split("\n\n");
+        buffer = chunks.pop() || "";
+
+        for (const chunk of chunks) {
+          const line = chunk.trim();
+          if (!line.startsWith("data: ")) continue;
+
+          const event = JSON.parse(line.slice(6));
+
+          switch (event.stage) {
+            case "expanding":
+              setProgress((prev) =>
+                prev ? { ...prev, stage: "expanding" } : prev
+              );
+              break;
+
+            case "querying": {
+              const providerMap: Record<string, ProviderStatus> = {};
+              for (const p of event.providers) providerMap[p] = "loading";
+              setProgress((prev) =>
+                prev ? { ...prev, stage: "querying", providers: providerMap } : prev
+              );
+              break;
+            }
+
+            case "provider_done":
+              setProgress((prev) => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  providers: { ...prev.providers, [event.provider]: "done" },
+                };
+              });
+              break;
+
+            case "provider_failed":
+              setProgress((prev) => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  providers: { ...prev.providers, [event.provider]: "failed" },
+                };
+              });
+              break;
+
+            case "merging":
+              setProgress((prev) =>
+                prev ? { ...prev, stage: "merging" } : prev
+              );
+              break;
+
+            case "complete":
+              setProgress((prev) =>
+                prev ? { ...prev, stage: "complete", active: false } : prev
+              );
+              trackEvent({ action: "analysis_completed", params: { topic: trimmedTopic } });
+              router.push(`/results/${event.id}`);
+              return;
+
+            case "error":
+              setProgress((prev) =>
+                prev
+                  ? { ...prev, stage: "error", active: false, errorMessage: event.message }
+                  : prev
+              );
+              trackEvent({ action: "analysis_error", params: { error_type: "stream_error" } });
+              setError(event.message || "Analysis failed. Please try again.");
+              setIsLoading(false);
+              return;
+          }
+        }
       }
-      trackEvent({ action: "analysis_completed", params: { topic: trimmedTopic } });
-      router.push(`/results/${data.id}`);
+
+      // Stream ended without complete/error event
+      setError("Analysis ended unexpectedly. Please try again.");
+      setIsLoading(false);
+      setProgress(null);
     } catch {
       trackEvent({ action: "analysis_error", params: { error_type: "network" } });
       setError("Something went wrong. Please try again.");
       setIsLoading(false);
+      setProgress(null);
     }
   };
 
@@ -354,62 +457,66 @@ export default function Home() {
                     className="flex-1 px-5 py-3.5 text-base rounded-2xl bg-white/80 border border-black/12 shadow-sm text-[--text-primary] placeholder-[--text-tertiary] focus:outline-none focus:border-[--accent-cyan]/50 focus:ring-2 focus:ring-[--accent-cyan]/15 focus:bg-white/90 backdrop-blur-xl transition-all duration-300"
                     disabled={isLoading}
                   />
-                  <div className="relative">
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="btn-primary px-8 py-3.5 text-base rounded-2xl whitespace-nowrap"
-                    >
-                      {isLoading ? (
-                        <span className="flex items-center justify-center gap-2">
-                          <span className="w-4 h-4 border-2 border-white/80 border-t-transparent rounded-full animate-spin" />
-                          Analyzing…
-                        </span>
-                      ) : (
-                        "Explore"
-                      )}
-                    </button>
-                    {showWaitTooltip && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 px-4 py-2.5 rounded-xl bg-gray-900 shadow-lg shadow-black/15 text-sm font-medium text-white whitespace-nowrap animate-fade-in">
-                        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rotate-45 bg-gray-900" />
-                        Hang tight — we&apos;re almost done!
-                      </div>
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="btn-primary px-8 py-3.5 text-base rounded-2xl whitespace-nowrap"
+                  >
+                    {isLoading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white/80 border-t-transparent rounded-full animate-spin" />
+                        Analyzing…
+                      </span>
+                    ) : (
+                      "Explore"
                     )}
-                  </div>
+                  </button>
                 </div>
                 {error && (
                   <p className="mt-4 text-red-500 font-medium text-sm">{error}</p>
                 )}
               </form>
 
+              {/* Analysis Progress Panel */}
+              {progress && (
+                <AnalysisProgressPanel
+                  stage={progress.stage}
+                  providers={progress.providers}
+                  elapsedSeconds={progress.elapsedSeconds}
+                  errorMessage={progress.errorMessage}
+                />
+              )}
+
               {/* Example Topics */}
-              <div className="text-sm text-[--text-secondary]">
-                <p className="mb-3">Try an example:</p>
-                <div className="flex flex-wrap gap-2">
-                  {exampleTopics.map((example) => (
-                    <button
-                      key={example}
-                      onClick={() => {
-                        setTopic(example);
-                        trackEvent({ action: "example_topic_clicked", params: { topic: example } });
-                      }}
-                      className="pill-interactive px-4 py-2 rounded-full text-sm"
-                      disabled={isLoading}
-                    >
-                      {example}
-                    </button>
-                  ))}
+              {!progress && (
+                <div className="text-sm text-[--text-secondary]">
+                  <p className="mb-3">Try an example:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {exampleTopics.map((example) => (
+                      <button
+                        key={example}
+                        onClick={() => {
+                          setTopic(example);
+                          trackEvent({ action: "example_topic_clicked", params: { topic: example } });
+                        }}
+                        className="pill-interactive px-4 py-2 rounded-full text-sm"
+                        disabled={isLoading}
+                      >
+                        {example}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowMethodology(true);
+                      trackEvent({ action: "methodology_opened" });
+                    }}
+                    className="mt-4 text-[--accent-cyan] hover:text-[--accent-violet] transition-colors underline underline-offset-2"
+                  >
+                    How does this work?
+                  </button>
                 </div>
-                <button
-                  onClick={() => {
-                    setShowMethodology(true);
-                    trackEvent({ action: "methodology_opened" });
-                  }}
-                  className="mt-4 text-[--accent-cyan] hover:text-[--accent-violet] transition-colors underline underline-offset-2"
-                >
-                  How does this work?
-                </button>
-              </div>
+              )}
             </div>
 
           </div>
