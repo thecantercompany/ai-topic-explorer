@@ -6,6 +6,7 @@ const CHANGELOG: { date: string; changes: string[] }[] = [
   {
     date: "Feb 14",
     changes: [
+      "Upgrade Gemini from deprecated 2.0 Flash to 2.5 Flash to fix failures",
       "Update metadata, OG image, and Apple icon to reflect all 5 AI platforms",
       "Disable Gemini safety filters so sensitive topics aren't blocked",
       "Increase provider timeout to 60s so Claude has enough time to respond",

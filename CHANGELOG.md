@@ -5,6 +5,7 @@ All notable changes to AI Topic Explorer will be documented in this file.
 ## [2026-02-14]
 
 ### Fixed
+- Upgrade Gemini from deprecated 2.0 Flash to 2.5 Flash (with thinking disabled) to fix failures
 - Disable Gemini safety filters so sensitive topics (politics, social issues) aren't blocked
 - Increase per-provider timeout from 45s to 60s so Claude has enough time to respond
 - Switch Gemini from thinking model (2.5 Flash) to non-thinking model (2.0 Flash) to prevent timeouts

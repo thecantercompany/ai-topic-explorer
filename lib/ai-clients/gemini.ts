@@ -6,13 +6,16 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
 export async function analyzeWithGemini(query: string): Promise<AIResponse> {
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     safetySettings: [
       { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
       { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
       { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
       { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
     ],
+    generationConfig: {
+      thinkingConfig: { thinkingBudget: 0 },
+    } as Record<string, unknown>,
   });
 
   const result = await model.generateContent(PROMPT_TEMPLATE(query));
@@ -38,7 +41,7 @@ export async function analyzeWithGemini(query: string): Promise<AIResponse> {
     entities,
     citations,
     keyThemes,
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     usage: [usage],
   };
 }
