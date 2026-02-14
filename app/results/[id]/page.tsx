@@ -20,6 +20,16 @@ export default async function ResultsPage({ params }: Props) {
   }
 
   const result = analysis.result as unknown as AnalysisResult;
+
+  // Validate essential data shape
+  if (
+    !result?.topic ||
+    !result?.responses ||
+    !Array.isArray(result?.combinedWordFrequencies)
+  ) {
+    notFound();
+  }
+
   const topicWords = topicToWords(result.topic);
   const filteredFrequencies = result.combinedWordFrequencies.filter(
     (f) => !topicWords.has(f.word)

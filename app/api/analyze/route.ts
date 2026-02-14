@@ -156,11 +156,17 @@ export async function POST(request: NextRequest) {
   }
 
   // Stream SSE events for real-time progress
+  const { signal } = request;
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
       function emit(event: Record<string, unknown>) {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+        if (signal.aborted) return;
+        try {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
+        } catch {
+          // Stream already closed
+        }
       }
 
       try {
@@ -182,6 +188,12 @@ export async function POST(request: NextRequest) {
         } catch (e) {
           console.warn("Query expansion failed, using original topic:", e);
           expandedQueries = [topic];
+        }
+
+        // Check if client disconnected before expensive AI calls
+        if (signal.aborted) {
+          controller.close();
+          return;
         }
 
         // Step 2: Run all queries × all providers in parallel
@@ -306,18 +318,34 @@ export async function POST(request: NextRequest) {
           tokenUsage: allUsage,
         };
 
-        // Save to database
+        // Check if client disconnected before DB save
+        if (signal.aborted) {
+          controller.close();
+          return;
+        }
+
+        // Save to database (retry once on failure)
         let analysisId: string | null = null;
-        try {
-          const analysis = await prisma.analysis.create({
-            data: {
-              topic,
-              result: JSON.parse(JSON.stringify(analysisResult)),
-            },
-          });
-          analysisId = analysis.id;
-        } catch (e) {
-          console.error("Failed to save analysis to database:", e);
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            const analysis = await prisma.analysis.create({
+              data: {
+                topic,
+                result: JSON.parse(JSON.stringify(analysisResult)),
+              },
+            });
+            analysisId = analysis.id;
+            break;
+          } catch (e) {
+            console.error(`Failed to save analysis (attempt ${attempt + 1}):`, e);
+            if (attempt === 0) await new Promise((r) => setTimeout(r, 1000));
+          }
+        }
+
+        if (!analysisId) {
+          emit({ stage: "error", message: "Failed to save results. Please try again." });
+          controller.close();
+          return;
         }
 
         emit({ stage: "complete", id: analysisId });

@@ -306,11 +306,17 @@ export default function Home() {
     });
     trackEvent({ action: "topic_searched", params: { topic: trimmedTopic } });
 
+    const abortController = new AbortController();
+    const streamTimeout = setTimeout(() => {
+      abortController.abort();
+    }, 3 * 60 * 1000); // 3 minute client-side timeout
+
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topic: trimmedTopic }),
+        signal: abortController.signal,
       });
 
       // Handle non-streaming error responses (rate limit, 503, validation)
@@ -393,6 +399,7 @@ export default function Home() {
               break;
 
             case "complete":
+              clearTimeout(streamTimeout);
               setProgress((prev) =>
                 prev ? { ...prev, stage: "complete", active: false } : prev
               );
@@ -401,6 +408,7 @@ export default function Home() {
               return;
 
             case "error":
+              clearTimeout(streamTimeout);
               setProgress((prev) =>
                 prev
                   ? { ...prev, stage: "error", active: false, errorMessage: event.message }
@@ -415,12 +423,19 @@ export default function Home() {
       }
 
       // Stream ended without complete/error event
+      clearTimeout(streamTimeout);
       setError("Analysis ended unexpectedly. Please try again.");
       setIsLoading(false);
       setProgress(null);
-    } catch {
-      trackEvent({ action: "analysis_error", params: { error_type: "network" } });
-      setError("Something went wrong. Please try again.");
+    } catch (err) {
+      clearTimeout(streamTimeout);
+      if (err instanceof DOMException && err.name === "AbortError") {
+        trackEvent({ action: "analysis_error", params: { error_type: "timeout" } });
+        setError("Analysis took too long. Please try again.");
+      } else {
+        trackEvent({ action: "analysis_error", params: { error_type: "network" } });
+        setError("Something went wrong. Please try again.");
+      }
       setIsLoading(false);
       setProgress(null);
     }

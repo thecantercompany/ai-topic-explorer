@@ -6,6 +6,7 @@ const CHANGELOG: { date: string; changes: string[] }[] = [
   {
     date: "Feb 14",
     changes: [
+      "Add stability improvements: DB save retry, client-side timeout, abort on disconnect, data validation",
       "Fix analysis timeout by switching Gemini to faster model and adding per-provider timeouts",
       "Hide changelog link on results page to reduce sidebar clutter",
       "Replace Web Perspective with lightweight Perplexity section showing related questions",
