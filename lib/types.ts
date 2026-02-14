@@ -1,4 +1,4 @@
-export type Provider = "claude" | "openai" | "gemini";
+export type Provider = "claude" | "openai" | "gemini" | "perplexity";
 
 export interface Entity {
   name: string;
@@ -64,11 +64,13 @@ export interface AnalysisResult {
     claude: AIResponse | null;
     openai: AIResponse | null;
     gemini: AIResponse | null;
+    perplexity: AIResponse | null;
   };
   errors: {
     claude?: string;
     openai?: string;
     gemini?: string;
+    perplexity?: string;
   };
   combinedWordFrequencies: WordFrequency[];
   combinedKeyThemes: KeyTheme[];

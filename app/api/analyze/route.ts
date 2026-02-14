@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { analyzeWithClaude } from "@/lib/ai-clients/claude";
+import { analyzeWithOpenAI } from "@/lib/ai-clients/openai";
+import { analyzeWithGemini } from "@/lib/ai-clients/gemini";
+import { analyzeWithPerplexity } from "@/lib/ai-clients/perplexity";
 import { expandQuery } from "@/lib/analysis/query-expansion";
 import {
   calculateWordFrequency,
@@ -30,14 +33,15 @@ function getConfiguredProviders(): { provider: Provider; analyze: AnalyzeFn }[] 
   if (process.env.ANTHROPIC_API_KEY) {
     providers.push({ provider: "claude", analyze: analyzeWithClaude });
   }
-
-  // OpenAI and Gemini will be added in Phase 5
-  // if (process.env.OPENAI_API_KEY) {
-  //   providers.push({ provider: "openai", analyze: analyzeWithOpenAI });
-  // }
-  // if (process.env.GOOGLE_AI_API_KEY) {
-  //   providers.push({ provider: "gemini", analyze: analyzeWithGemini });
-  // }
+  if (process.env.OPENAI_API_KEY) {
+    providers.push({ provider: "openai", analyze: analyzeWithOpenAI });
+  }
+  if (process.env.GOOGLE_AI_API_KEY) {
+    providers.push({ provider: "gemini", analyze: analyzeWithGemini });
+  }
+  if (process.env.PERPLEXITY_API_KEY) {
+    providers.push({ provider: "perplexity", analyze: analyzeWithPerplexity });
+  }
 
   return providers;
 }
@@ -172,6 +176,7 @@ export async function POST(request: NextRequest) {
     claude: null,
     openai: null,
     gemini: null,
+    perplexity: null,
   };
   const errors: AnalysisResult["errors"] = {};
   const wordFreqLists: WordFrequency[][] = [];

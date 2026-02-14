@@ -28,7 +28,7 @@ export default async function ResultsPage({ params }: Props) {
   const keyThemes: KeyTheme[] = result.combinedKeyThemes || [];
 
   // Determine which providers succeeded/failed/unavailable
-  const allProviders: Provider[] = ["claude", "openai", "gemini"];
+  const allProviders: Provider[] = ["claude", "openai", "gemini", "perplexity"];
   const providerStatuses: { provider: Provider; status: "done" | "failed" | "unavailable" }[] =
     allProviders.map((provider) => {
       if (result.responses[provider]) {
@@ -51,6 +51,7 @@ export default async function ResultsPage({ params }: Props) {
     claude: "Claude",
     openai: "GPT",
     gemini: "Gemini",
+    perplexity: "Perplexity",
   };
 
   let partialFailureMessage: string | null = null;
