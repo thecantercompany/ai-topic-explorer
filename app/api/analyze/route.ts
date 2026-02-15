@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { logError } from "@/lib/error-logger";
 import { analyzeWithClaude } from "@/lib/ai-clients/claude";
 import { analyzeWithOpenAI } from "@/lib/ai-clients/openai";
 import { analyzeWithGemini } from "@/lib/ai-clients/gemini";
@@ -141,6 +142,11 @@ export async function POST(request: NextRequest) {
   const rateLimit = checkRateLimit(ip);
   if (!rateLimit.allowed) {
     const retryMinutes = Math.ceil((rateLimit.retryAfterMs || 0) / 60000);
+    logError({
+      category: "rate_limit",
+      message: `Rate limit hit: ${retryMinutes} min retry`,
+      ip,
+    });
     return NextResponse.json(
       {
         error: `You've reached the analysis limit. Try again in ${retryMinutes} minute${retryMinutes === 1 ? "" : "s"}.`,
@@ -211,6 +217,13 @@ export async function POST(request: NextRequest) {
           );
         } catch (e) {
           console.warn("Query expansion failed, using original topic:", e);
+          logError({
+            category: "query_expansion_error",
+            message: e instanceof Error ? e.message : String(e),
+            rawError: e,
+            topic,
+            ip,
+          });
           expandedQueries = [topic];
         }
 
@@ -247,6 +260,15 @@ export async function POST(request: NextRequest) {
                 for (const f of failed) {
                   const reason = categorizeError(f.reason);
                   console.warn(`[${provider}] Subtopic query failed: ${reason}`);
+                  logError({
+                    category: "provider_failure",
+                    provider,
+                    message: reason,
+                    rawError: f.reason,
+                    topic,
+                    ip,
+                    metadata: { stage: "subtopic_query" },
+                  });
                 }
               }
 
@@ -264,6 +286,14 @@ export async function POST(request: NextRequest) {
             } catch (err) {
               const reason = categorizeError(err);
               console.error(`[${provider}] Provider failed: ${reason}`);
+              logError({
+                category: "provider_failure",
+                provider,
+                message: reason,
+                rawError: err,
+                topic,
+                ip,
+              });
               emit({ stage: "provider_failed", provider, reason });
               throw err;
             }
@@ -369,6 +399,13 @@ export async function POST(request: NextRequest) {
             break;
           } catch (e) {
             console.error(`Failed to save analysis (attempt ${attempt + 1}):`, e);
+            logError({
+              category: "database_error",
+              message: `Failed to save analysis (attempt ${attempt + 1})`,
+              rawError: e,
+              topic,
+              ip,
+            });
             if (attempt === 0) await new Promise((r) => setTimeout(r, 1000));
           }
         }
@@ -382,6 +419,13 @@ export async function POST(request: NextRequest) {
         emit({ stage: "complete", id: analysisId });
       } catch (err) {
         console.error("Analysis stream error:", err);
+        logError({
+          category: "stream_error",
+          message: err instanceof Error ? err.message : String(err),
+          rawError: err,
+          topic,
+          ip,
+        });
         emit({ stage: "error", message: "Analysis failed. Please try again." });
       } finally {
         controller.close();

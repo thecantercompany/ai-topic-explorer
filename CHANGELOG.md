@@ -7,6 +7,7 @@ All notable changes to AI Topic Explorer will be documented in this file.
 ### Added
 - Show specific error reasons when an AI provider fails (e.g., "Timed out after 60s", "Rate limited", "API overloaded")
 - Error details now visible during analysis loading and on the results page failure banner
+- Add error logging to database for daily error reports (new ErrorLog model with 6 instrumentation points)
 
 ### Fixed
 - Long entity names, citations, and word context excerpts no longer overflow on small screens
