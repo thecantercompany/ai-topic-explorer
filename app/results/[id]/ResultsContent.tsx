@@ -28,7 +28,7 @@ interface Props {
   keyThemes: KeyTheme[];
   entities: CombinedEntities;
   citations: CombinedCitation[];
-  providerStatuses: { provider: Provider; status: "done" | "failed" | "unavailable" }[];
+  providerStatuses: { provider: Provider; status: "done" | "failed" | "unavailable"; errorReason?: string }[];
   partialFailureMessage: string | null;
   analysisId: string;
   providerTexts: Record<string, string>;
@@ -130,7 +130,7 @@ export default function ResultsContent({
           <ProgressTracker providers={providerStatuses} layout="horizontal" />
 
           {/* Section jump links */}
-          <div className="flex gap-3 mt-2 text-xs">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs">
             {sections.map((s) => (
               <a
                 key={s.id}
@@ -218,7 +218,7 @@ export default function ResultsContent({
         </aside>
 
         {/* Main content */}
-        <div className="flex-1 py-8 px-4 sm:px-8 lg:px-12 min-w-0 overflow-hidden">
+        <div className="flex-1 py-8 px-4 sm:px-8 lg:px-12 min-w-0 overflow-hidden break-words">
           <div className="max-w-4xl mx-auto">
             {/* Desktop topic heading (hidden on mobile since it's in the header) */}
             <div className="hidden lg:block mb-8">
@@ -298,6 +298,11 @@ export default function ResultsContent({
             )}
           </div>
         </div>
+      </div>
+
+      {/* Mobile footer */}
+      <div className="lg:hidden border-t border-black/6 px-4 py-4">
+        <Footer hideChangelog />
       </div>
 
       {contextModal && (

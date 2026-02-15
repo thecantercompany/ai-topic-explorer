@@ -61,12 +61,12 @@ export default function CitationList({ citations }: Props) {
             )}
             <ul className={`space-y-3 ${group.items.length > 1 ? "border-l-2 border-black/5 pl-4" : ""}`}>
               {group.items.map((citation, idx) => (
-                <li key={idx} className="flex items-center gap-2 min-w-0">
+                <li key={idx} className="flex flex-wrap items-baseline gap-x-2 gap-y-1 min-w-0">
                   <a
                     href={citation.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[--text-primary] underline decoration-black/15 hover:text-[--accent-cyan] hover:decoration-[--accent-cyan]/40 text-sm font-medium leading-snug transition-colors truncate"
+                    className="text-[--text-primary] underline decoration-black/15 hover:text-[--accent-cyan] hover:decoration-[--accent-cyan]/40 text-sm font-medium leading-snug transition-colors break-words min-w-0"
                   >
                     {citation.title}
                   </a>

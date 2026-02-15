@@ -45,8 +45,8 @@ export default function EntityList({ entities }: Props) {
             {entities[key].length > 0 ? (
               <ul className="space-y-1.5">
                 {entities[key].map((entity, idx) => (
-                  <li key={idx} className="flex items-center gap-2 text-sm text-[--text-secondary]">
-                    <span className="truncate">
+                  <li key={idx} className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-[--text-secondary]">
+                    <span className="break-words min-w-0">
                       {entity.url ? (
                         <a
                           href={entity.url}

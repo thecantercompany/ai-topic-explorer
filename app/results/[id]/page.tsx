@@ -39,12 +39,12 @@ export default async function ResultsPage({ params }: Props) {
 
   // Determine which providers succeeded/failed/unavailable
   const allProviders: Provider[] = ["claude", "openai", "gemini", "perplexity", "grok"];
-  const providerStatuses: { provider: Provider; status: "done" | "failed" | "unavailable" }[] =
+  const providerStatuses: { provider: Provider; status: "done" | "failed" | "unavailable"; errorReason?: string }[] =
     allProviders.map((provider) => {
       if (result.responses[provider]) {
         return { provider, status: "done" };
       } else if (result.errors[provider]) {
-        return { provider, status: "failed" };
+        return { provider, status: "failed", errorReason: result.errors[provider] };
       }
       return { provider, status: "unavailable" };
     });
@@ -67,13 +67,18 @@ export default async function ResultsPage({ params }: Props) {
 
   let partialFailureMessage: string | null = null;
   if (failedProviders.length > 0 && succeededProviders.length > 0) {
-    const failedNames = failedProviders
-      .map((p) => PROVIDER_LABELS[p])
+    const failedDetails = failedProviders
+      .map((p) => {
+        const reason = result.errors[p];
+        return reason
+          ? `${PROVIDER_LABELS[p]} (${reason})`
+          : PROVIDER_LABELS[p];
+      })
       .join(", ");
     const succeededNames = succeededProviders
       .map((p) => PROVIDER_LABELS[p])
       .join(" and ");
-    partialFailureMessage = `${failedNames} unavailable — showing results from ${succeededNames}`;
+    partialFailureMessage = `${failedDetails} unavailable — showing results from ${succeededNames}`;
   }
 
   // Build provider raw text map for word context lookups (exclude Perplexity — web search, not training data)

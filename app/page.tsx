@@ -227,6 +227,7 @@ interface ProgressState {
   active: boolean;
   stage: Stage;
   providers: Record<string, ProviderStatus>;
+  providerErrors: Record<string, string>;
   elapsedSeconds: number;
   errorMessage?: string;
 }
@@ -302,6 +303,7 @@ export default function Home() {
       active: true,
       stage: "expanding",
       providers: {},
+      providerErrors: {},
       elapsedSeconds: 0,
     });
     trackEvent({ action: "topic_searched", params: { topic: trimmedTopic } });
@@ -388,6 +390,10 @@ export default function Home() {
                 return {
                   ...prev,
                   providers: { ...prev.providers, [event.provider]: "failed" },
+                  providerErrors: {
+                    ...prev.providerErrors,
+                    ...(event.reason ? { [event.provider]: event.reason } : {}),
+                  },
                 };
               });
               break;
@@ -454,7 +460,7 @@ export default function Home() {
 
           <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-10 md:min-h-[calc(100vh-80px)] md:flex md:items-center pointer-events-none">
             {/* LEFT — Search */}
-            <div className="w-full md:w-1/2 py-16 md:py-0 pointer-events-auto">
+            <div className="w-full md:w-1/2 py-16 md:py-0 pointer-events-auto min-w-0">
               <h1
                 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4"
                 style={{
@@ -508,6 +514,7 @@ export default function Home() {
                 <AnalysisProgressPanel
                   stage={progress.stage}
                   providers={progress.providers}
+                  providerErrors={progress.providerErrors}
                   elapsedSeconds={progress.elapsedSeconds}
                   errorMessage={progress.errorMessage}
                 />

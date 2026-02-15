@@ -7,6 +7,7 @@ type ProviderStatus = "pending" | "loading" | "done" | "failed";
 interface Props {
   stage: Stage;
   providers: Record<string, ProviderStatus>;
+  providerErrors?: Record<string, string>;
   elapsedSeconds: number;
   errorMessage?: string;
 }
@@ -22,6 +23,7 @@ const STAGE_MESSAGES: Record<Stage, string> = {
 export default function AnalysisProgressPanel({
   stage,
   providers,
+  providerErrors,
   elapsedSeconds,
   errorMessage,
 }: Props) {
@@ -57,6 +59,7 @@ export default function AnalysisProgressPanel({
             providers={providerEntries.map(([provider, status]) => ({
               provider: provider as Provider,
               status,
+              errorReason: providerErrors?.[provider],
             }))}
           />
         </div>

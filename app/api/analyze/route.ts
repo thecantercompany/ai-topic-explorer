@@ -33,7 +33,7 @@ const PROVIDER_TIMEOUT_MS = 60_000; // 60 seconds per provider query
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(
-      () => reject(new Error(`${label} timed out after ${ms / 1000}s`)),
+      () => reject(new Error(`Timed out after ${ms / 1000}s`)),
       ms
     );
     promise.then(
@@ -41,6 +41,30 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
       (err) => { clearTimeout(timer); reject(err); }
     );
   });
+}
+
+/** Categorize an error into a user-friendly reason */
+function categorizeError(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+
+  if (message.includes("Timed out after")) return message;
+  if (message.includes("429") || message.toLowerCase().includes("rate limit"))
+    return "Rate limited — too many requests";
+  if (message.includes("529") || message.includes("overloaded"))
+    return "API overloaded — try again shortly";
+  if (message.includes("401") || message.includes("authentication") || message.includes("invalid.*key"))
+    return "Authentication error — invalid API key";
+  if (message.includes("403") || message.includes("permission"))
+    return "Permission denied";
+  if (message.includes("500") || message.includes("internal server error"))
+    return "Provider API internal error";
+  if (message.includes("ECONNREFUSED") || message.includes("ENOTFOUND") || message.includes("fetch failed"))
+    return "Network error — could not reach provider";
+  if (message.includes("All") && message.includes("subtopic queries failed"))
+    return "All subtopic queries failed";
+
+  // Truncate long messages
+  return message.length > 120 ? message.slice(0, 120) + "…" : message;
 }
 
 function getConfiguredProviders(): { provider: Provider; analyze: AnalyzeFn }[] {
@@ -216,24 +240,31 @@ export async function POST(request: NextRequest) {
                 )
                 .map((r) => r.value);
 
-              const failed = queryResults.filter((r) => r.status === "rejected");
+              const failed = queryResults.filter(
+                (r): r is PromiseRejectedResult => r.status === "rejected"
+              );
               if (failed.length > 0) {
-                console.warn(
-                  `[${provider}] ${failed.length}/${expandedQueries.length} subtopic queries failed`
-                );
+                for (const f of failed) {
+                  const reason = categorizeError(f.reason);
+                  console.warn(`[${provider}] Subtopic query failed: ${reason}`);
+                }
               }
 
               if (successful.length === 0) {
-                throw new Error(
-                  `All ${expandedQueries.length} subtopic queries failed for ${provider}`
-                );
+                // Use the first failure's reason as the representative error
+                const firstReason = failed.length > 0
+                  ? categorizeError(failed[0].reason)
+                  : "Unknown error";
+                throw new Error(firstReason);
               }
 
               const merged = mergeProviderResponses(successful);
               emit({ stage: "provider_done", provider });
               return merged;
             } catch (err) {
-              emit({ stage: "provider_failed", provider });
+              const reason = categorizeError(err);
+              console.error(`[${provider}] Provider failed: ${reason}`);
+              emit({ stage: "provider_failed", provider, reason });
               throw err;
             }
           })
@@ -275,7 +306,7 @@ export async function POST(request: NextRequest) {
               allUsage.push(...result.value.usage);
             }
           } else {
-            errors[provider] = result.reason?.message || "Analysis failed";
+            errors[provider] = categorizeError(result.reason);
           }
         }
 

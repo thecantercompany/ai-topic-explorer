@@ -97,7 +97,7 @@ export default function WordContextModal({ word, matches, onClose }: Props) {
                   {match.excerpts.map((excerpt, i) => (
                     <li
                       key={i}
-                      className="text-sm text-[--text-secondary] leading-relaxed pl-3 border-l-2 border-[--accent-cyan]/30"
+                      className="text-sm text-[--text-secondary] leading-relaxed pl-3 border-l-2 border-[--accent-cyan]/30 break-words"
                     >
                       {highlightWord(excerpt, word)}
                     </li>
