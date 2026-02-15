@@ -13,19 +13,3 @@ model Analysis {
   result    Json
   createdAt DateTime @default(now())
 }
-
-model ErrorLog {
-  id        String   @id @default(cuid())
-  category  String
-  provider  String?
-  message   String
-  rawError  String?
-  topic     String?
-  ip        String?
-  metadata  Json?
-  createdAt DateTime @default(now())
-
-  @@index([createdAt])
-  @@index([category])
-  @@index([provider])
-}

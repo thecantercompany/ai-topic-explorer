@@ -8,7 +8,7 @@ const CHANGELOG: { date: string; changes: string[] }[] = [
     changes: [
       "Show specific error reasons when an AI provider fails (timeout, rate limit, API error, etc.)",
       "Fix text overflow issues on small screens for entities, citations, and word context",
-      "Add error logging to database for daily error reports",
+      "Add error reporting for daily error reports",
     ],
   },
   {
