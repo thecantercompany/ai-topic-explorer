@@ -2,6 +2,13 @@
 
 All notable changes to AI Topic Explorer will be documented in this file.
 
+## [2026-03-10]
+
+### Added
+- Beta announcement banner at the top of every page with dismissible localStorage persistence
+- Floating "Report a Bug" button in bottom-right corner with modal form
+- Bug report API route that forwards user-submitted reports to centralized Error Reporter
+
 ## [2026-02-15]
 
 ### Added

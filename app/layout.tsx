@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import Script from "next/script";
+import BetaBanner from "@/components/BetaBanner";
+import BugReportButton from "@/components/BugReportButton";
 import "./globals.css";
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
@@ -64,7 +66,9 @@ export default function RootLayout({
             </Script>
           </>
         )}
+        <BetaBanner />
         {children}
+        <BugReportButton />
       </body>
     </html>
   );

@@ -4,6 +4,13 @@ import { useState, useRef, useEffect } from "react";
 
 const CHANGELOG: { date: string; changes: string[] }[] = [
   {
+    date: "Mar 10",
+    changes: [
+      "Add beta announcement banner at the top of every page",
+      "Add floating 'Report a Bug' button with submission form",
+    ],
+  },
+  {
     date: "Feb 15",
     changes: [
       "Show specific error reasons when an AI provider fails (timeout, rate limit, API error, etc.)",
