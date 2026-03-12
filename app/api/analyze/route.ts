@@ -29,7 +29,8 @@ import type {
 
 type AnalyzeFn = (query: string) => Promise<AIResponse>;
 
-const PROVIDER_TIMEOUT_MS = 60_000; // 60 seconds per provider query
+const PROVIDER_TIMEOUT_MS = 90_000; // 90 seconds per provider query
+const EXPANSION_TIMEOUT_MS = 15_000; // 15 seconds for query expansion
 
 function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -205,7 +206,7 @@ export async function POST(request: NextRequest) {
         const allUsage: TokenUsage[] = [];
         let expandedQueries: string[];
         try {
-          const expansion = await expandQuery(topic);
+          const expansion = await withTimeout(expandQuery(topic), EXPANSION_TIMEOUT_MS, "expansion");
           expandedQueries = expansion.queries;
           if (expansion.usage.inputTokens > 0) {
             allUsage.push(expansion.usage);

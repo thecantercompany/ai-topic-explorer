@@ -4,6 +4,13 @@ import { useState, useRef, useEffect } from "react";
 
 const CHANGELOG: { date: string; changes: string[] }[] = [
   {
+    date: "Mar 12",
+    changes: [
+      "Fix Claude timeouts by increasing provider timeout to 90s and reducing max response length",
+      "Add timeout to query expansion to prevent indefinite hangs",
+    ],
+  },
+  {
     date: "Mar 10",
     changes: [
       "Add beta announcement banner at the top of every page",

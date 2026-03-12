@@ -2,6 +2,13 @@
 
 All notable changes to AI Topic Explorer will be documented in this file.
 
+## [2026-03-12]
+
+### Fixed
+- Increase provider timeout from 60s to 90s to reduce Claude timeouts on complex topics
+- Add 15s timeout to query expansion to prevent indefinite hangs
+- Reduce Claude max_tokens from 8192 to 4096 for faster response times
+
 ## [2026-03-10]
 
 ### Added
