@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { reportError } from "@/lib/error-reporter";
+import { reportError } from "canter-error-reporter";
 import { analyzeWithClaude } from "@/lib/ai-clients/claude";
 import { analyzeWithOpenAI } from "@/lib/ai-clients/openai";
 import { analyzeWithGemini } from "@/lib/ai-clients/gemini";
@@ -144,6 +144,7 @@ export async function POST(request: NextRequest) {
   if (!rateLimit.allowed) {
     const retryMinutes = Math.ceil((rateLimit.retryAfterMs || 0) / 60000);
     reportError({
+      project: "ai-topic-explorer",
       category: "rate_limit",
       message: `Rate limit hit: ${retryMinutes} min retry`,
     });
@@ -218,6 +219,7 @@ export async function POST(request: NextRequest) {
         } catch (e) {
           console.warn("Query expansion failed, using original topic:", e);
           reportError({
+      project: "ai-topic-explorer",
             category: "query_expansion_error",
             message: e instanceof Error ? e.message : String(e),
             rawError: e,
@@ -260,6 +262,7 @@ export async function POST(request: NextRequest) {
                   const reason = categorizeError(f.reason);
                   console.warn(`[${provider}] Subtopic query failed: ${reason}`);
                   reportError({
+      project: "ai-topic-explorer",
                     category: "provider_failure",
                     provider,
                     message: reason,
@@ -284,6 +287,7 @@ export async function POST(request: NextRequest) {
               const reason = categorizeError(err);
               console.error(`[${provider}] Provider failed: ${reason}`);
               reportError({
+      project: "ai-topic-explorer",
                 category: "provider_failure",
                 provider,
                 message: reason,
@@ -396,6 +400,7 @@ export async function POST(request: NextRequest) {
           } catch (e) {
             console.error(`Failed to save analysis (attempt ${attempt + 1}):`, e);
             reportError({
+      project: "ai-topic-explorer",
               category: "database_error",
               message: `Failed to save analysis (attempt ${attempt + 1})`,
               rawError: e,
@@ -415,6 +420,7 @@ export async function POST(request: NextRequest) {
       } catch (err) {
         console.error("Analysis stream error:", err);
         reportError({
+      project: "ai-topic-explorer",
           category: "stream_error",
           message: err instanceof Error ? err.message : String(err),
           rawError: err,
