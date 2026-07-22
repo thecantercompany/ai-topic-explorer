@@ -6,17 +6,29 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-export async function analyzeWithClaude(query: string): Promise<AIResponse> {
-  const message = await client.messages.create({
-    model: "claude-sonnet-4-5-20250929",
-    max_tokens: 4096,
-    messages: [
+export async function analyzeWithClaude(
+  query: string,
+  signal?: AbortSignal
+): Promise<AIResponse> {
+  // Stream the response and collect the final message. Streaming keeps the
+  // connection active with incremental data, which avoids the request-timeout
+  // failures that non-streaming calls hit on long/high-max_tokens generations.
+  // The optional signal lets the caller's timeout actually cancel the request.
+  const message = await client.messages
+    .stream(
       {
-        role: "user",
-        content: PROMPT_TEMPLATE(query),
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 4096,
+        messages: [
+          {
+            role: "user",
+            content: PROMPT_TEMPLATE(query),
+          },
+        ],
       },
-    ],
-  });
+      { signal }
+    )
+    .finalMessage();
 
   const usage: TokenUsage = {
     inputTokens: message.usage.input_tokens,

@@ -1,10 +1,18 @@
 # AI Topic Explorer - Project Status
 
-**Last Updated:** February 12, 2026
+**Last Updated:** July 22, 2026
 
-## Current Status: Development (Phases 1-4 Complete)
+## Current Status: Live in production (beta)
 
-Core application built and compiling. Ready for database connection, testing, and deployment.
+Deployed on Railway with all five providers. Ongoing work is reliability hardening
+driven by production error reports.
+
+### Recent reliability work
+- Claude analyzer now streams responses (`messages.stream().finalMessage()`) instead of
+  a single non-streaming call, cutting down on 90s provider timeouts.
+- Provider timeouts now cancel the underlying request via AbortSignal rather than leaking it.
+- Follow-up candidate: apply the same streaming/abort pattern to the OpenAI, Gemini,
+  Perplexity, and Grok clients and to query expansion.
 
 ---
 

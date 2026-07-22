@@ -27,18 +27,27 @@ import type {
   TokenUsage,
 } from "@/lib/types";
 
-type AnalyzeFn = (query: string) => Promise<AIResponse>;
+type AnalyzeFn = (query: string, signal?: AbortSignal) => Promise<AIResponse>;
 
 const PROVIDER_TIMEOUT_MS = 90_000; // 90 seconds per provider query
 const EXPANSION_TIMEOUT_MS = 15_000; // 15 seconds for query expansion
 
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+/**
+ * Run `task` with a timeout. On timeout the task's AbortSignal is fired so the
+ * underlying request is actually cancelled instead of leaking in the background.
+ */
+function withTimeout<T>(
+  task: (signal: AbortSignal) => Promise<T>,
+  ms: number,
+  label: string
+): Promise<T> {
+  const controller = new AbortController();
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error(`Timed out after ${ms / 1000}s`)),
-      ms
-    );
-    promise.then(
+    const timer = setTimeout(() => {
+      controller.abort();
+      reject(new Error(`Timed out after ${ms / 1000}s`));
+    }, ms);
+    task(controller.signal).then(
       (val) => { clearTimeout(timer); resolve(val); },
       (err) => { clearTimeout(timer); reject(err); }
     );
@@ -207,7 +216,7 @@ export async function POST(request: NextRequest) {
         const allUsage: TokenUsage[] = [];
         let expandedQueries: string[];
         try {
-          const expansion = await withTimeout(expandQuery(topic), EXPANSION_TIMEOUT_MS, "expansion");
+          const expansion = await withTimeout(() => expandQuery(topic), EXPANSION_TIMEOUT_MS, "expansion");
           expandedQueries = expansion.queries;
           if (expansion.usage.inputTokens > 0) {
             allUsage.push(expansion.usage);
@@ -243,7 +252,7 @@ export async function POST(request: NextRequest) {
             try {
               const queryResults = await Promise.allSettled(
                 expandedQueries.map((query) =>
-                  withTimeout(analyze(query), PROVIDER_TIMEOUT_MS, `${provider}`)
+                  withTimeout((signal) => analyze(query, signal), PROVIDER_TIMEOUT_MS, `${provider}`)
                 )
               );
 

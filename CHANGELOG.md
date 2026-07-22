@@ -2,6 +2,12 @@
 
 All notable changes to AI Topic Explorer will be documented in this file.
 
+## [2026-07-22]
+
+### Fixed
+- Stream Claude responses instead of buffering the full non-streaming reply, reducing "Timed out after 90s" provider failures on long generations
+- Provider timeouts now abort the underlying request via AbortSignal instead of leaving it running in the background
+
 ## [2026-03-12]
 
 ### Fixed
