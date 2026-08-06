@@ -1,6 +1,6 @@
 # AI Topic Explorer - Project Status
 
-**Last Updated:** July 22, 2026
+**Last Updated:** August 6, 2026
 
 ## Current Status: Live in production (beta)
 
@@ -8,11 +8,18 @@ Deployed on Railway with all five providers. Ongoing work is reliability hardeni
 driven by production error reports.
 
 ### Recent reliability work
-- Claude analyzer now streams responses (`messages.stream().finalMessage()`) instead of
-  a single non-streaming call, cutting down on 90s provider timeouts.
-- Provider timeouts now cancel the underlying request via AbortSignal rather than leaking it.
+- Claude analyzer now accumulates text/usage from stream deltas directly instead of
+  waiting on `finalMessage()` — an aborted stream returns whatever text arrived instead
+  of discarding it. Only a stream that produced no text at all still throws.
+- Raised the per-provider query timeout from 90s to 150s. With every expanded query
+  (up to 5) fired at every provider at once, per-stream throughput degrades under load
+  and a normal ~2,000-token generation can legitimately exceed 90s.
+- Timeout errors and `provider_failure` reports now name the specific provider + query
+  that timed out, so future reports are diagnosable without guessing which of the
+  concurrent calls failed.
 - Follow-up candidate: apply the same streaming/abort pattern to the OpenAI, Gemini,
-  Perplexity, and Grok clients and to query expansion.
+  Perplexity, and Grok clients and to query expansion — they still use non-streaming
+  calls behind the same timeout and can exhibit the identical failure mode.
 
 ---
 

@@ -29,12 +29,18 @@ import type {
 
 type AnalyzeFn = (query: string, signal?: AbortSignal) => Promise<AIResponse>;
 
-const PROVIDER_TIMEOUT_MS = 90_000; // 90 seconds per provider query
+// Each provider query is a full generation (up to 4096 output tokens). Under
+// load — this route fires every expanded query at every provider at once — token
+// throughput drops and a normal generation can run well past a minute, so the
+// deadline needs real headroom above the typical case or healthy requests get
+// killed mid-stream and reported as failures.
+const PROVIDER_TIMEOUT_MS = 150_000; // 150 seconds per provider query
 const EXPANSION_TIMEOUT_MS = 15_000; // 15 seconds for query expansion
 
 /**
  * Run `task` with a timeout. On timeout the task's AbortSignal is fired so the
  * underlying request is actually cancelled instead of leaking in the background.
+ * `label` is included in the error so reports identify what timed out.
  */
 function withTimeout<T>(
   task: (signal: AbortSignal) => Promise<T>,
@@ -45,7 +51,7 @@ function withTimeout<T>(
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       controller.abort();
-      reject(new Error(`Timed out after ${ms / 1000}s`));
+      reject(new Error(`Timed out after ${ms / 1000}s (${label})`));
     }, ms);
     task(controller.signal).then(
       (val) => { clearTimeout(timer); resolve(val); },
@@ -252,7 +258,11 @@ export async function POST(request: NextRequest) {
             try {
               const queryResults = await Promise.allSettled(
                 expandedQueries.map((query) =>
-                  withTimeout((signal) => analyze(query, signal), PROVIDER_TIMEOUT_MS, `${provider}`)
+                  withTimeout(
+                    (signal) => analyze(query, signal),
+                    PROVIDER_TIMEOUT_MS,
+                    `${provider}: "${query.slice(0, 50)}"`
+                  )
                 )
               );
 
@@ -263,22 +273,27 @@ export async function POST(request: NextRequest) {
                 )
                 .map((r) => r.value);
 
-              const failed = queryResults.filter(
-                (r): r is PromiseRejectedResult => r.status === "rejected"
+              const failed = queryResults.flatMap((r, i) =>
+                r.status === "rejected"
+                  ? [{ reason: r.reason, query: expandedQueries[i] }]
+                  : []
               );
-              if (failed.length > 0) {
-                for (const f of failed) {
-                  const reason = categorizeError(f.reason);
-                  console.warn(`[${provider}] Subtopic query failed: ${reason}`);
-                  reportError({
-      project: "ai-topic-explorer",
-                    category: "provider_failure",
-                    provider,
-                    message: reason,
-                    rawError: f.reason,
-                    context: { topic, stage: "subtopic_query" },
-                  });
-                }
+              for (const f of failed) {
+                const reason = categorizeError(f.reason);
+                console.warn(`[${provider}] Subtopic query failed: ${reason}`);
+                reportError({
+                  project: "ai-topic-explorer",
+                  category: "provider_failure",
+                  provider,
+                  message: reason,
+                  rawError: f.reason,
+                  context: {
+                    topic,
+                    stage: "subtopic_query",
+                    query: f.query,
+                    queryCount: expandedQueries.length,
+                  },
+                });
               }
 
               if (successful.length === 0) {

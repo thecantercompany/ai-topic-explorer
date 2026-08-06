@@ -2,6 +2,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { AIResponse, TokenUsage } from "@/lib/types";
 import { PROMPT_TEMPLATE, parseStructuredData, extractRawText } from "./shared";
 
+const MODEL = "claude-sonnet-4-5-20250929";
+
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
@@ -10,46 +12,80 @@ export async function analyzeWithClaude(
   query: string,
   signal?: AbortSignal
 ): Promise<AIResponse> {
-  // Stream the response and collect the final message. Streaming keeps the
-  // connection active with incremental data, which avoids the request-timeout
-  // failures that non-streaming calls hit on long/high-max_tokens generations.
-  // The optional signal lets the caller's timeout actually cancel the request.
-  const message = await client.messages
-    .stream(
-      {
-        model: "claude-sonnet-4-5-20250929",
-        max_tokens: 4096,
-        messages: [
-          {
-            role: "user",
-            content: PROMPT_TEMPLATE(query),
-          },
-        ],
-      },
-      { signal }
-    )
-    .finalMessage();
+  // Stream the response and accumulate deltas as they arrive. Streaming keeps
+  // the connection active with incremental data, which avoids the
+  // request-timeout failures that non-streaming calls hit on long/high-max_tokens
+  // generations. The optional signal lets the caller's timeout cancel the
+  // request — and because we accumulate text ourselves rather than waiting on
+  // finalMessage(), a cancelled request still yields whatever had streamed in
+  // instead of throwing everything away.
+  const stream = client.messages.stream(
+    {
+      model: MODEL,
+      max_tokens: 4096,
+      messages: [
+        {
+          role: "user",
+          content: PROMPT_TEMPLATE(query),
+        },
+      ],
+    },
+    { signal }
+  );
+
+  let responseText = "";
+  let inputTokens = 0;
+  let outputTokens = 0;
+  let stopReason: string | null = null;
+  let interrupted = false;
+
+  try {
+    for await (const event of stream) {
+      if (event.type === "message_start") {
+        inputTokens = event.message.usage.input_tokens;
+        outputTokens = event.message.usage.output_tokens;
+      } else if (
+        event.type === "content_block_delta" &&
+        event.delta.type === "text_delta"
+      ) {
+        responseText += event.delta.text;
+      } else if (event.type === "message_delta") {
+        stopReason = event.delta.stop_reason ?? stopReason;
+        outputTokens = event.usage.output_tokens;
+      }
+    }
+  } catch (err) {
+    // Aborted by the caller's timeout, or the connection dropped mid-stream.
+    // Partial text is still usable — only give up if nothing arrived at all.
+    if (!responseText.trim()) throw err;
+    interrupted = true;
+    console.warn(
+      `[Analysis: Claude] Stream interrupted after ${responseText.length} chars; using partial response:`,
+      err instanceof Error ? err.message : String(err)
+    );
+  }
 
   const usage: TokenUsage = {
-    inputTokens: message.usage.input_tokens,
-    outputTokens: message.usage.output_tokens,
+    inputTokens,
+    outputTokens,
     purpose: "analysis",
   };
 
   console.log(
-    `[Analysis: Claude] Query: "${query.slice(0, 60)}..." — Tokens — input: ${usage.inputTokens}, output: ${usage.outputTokens}`
+    `[Analysis: Claude] Query: "${query.slice(0, 60)}..." — Tokens — input: ${usage.inputTokens}, output: ${usage.outputTokens}${interrupted ? " (partial)" : ""}`
   );
 
-  if (message.stop_reason === "max_tokens") {
+  if (stopReason === "max_tokens") {
     console.warn("Claude response was truncated due to max_tokens limit");
   }
 
-  const responseText = message.content
-    .filter((block): block is Anthropic.TextBlock => block.type === "text")
-    .map((block) => block.text)
-    .join("\n");
-
-  const { entities, citations, keyThemes } = parseStructuredData(responseText, "Claude");
+  // The structured JSON block is emitted last, so a truncated response loses
+  // entities/citations/themes and falls back to empty ones. The prose still
+  // feeds the word cloud.
+  const { entities, citations, keyThemes } = parseStructuredData(
+    responseText,
+    "Claude"
+  );
 
   return {
     provider: "claude",
@@ -57,7 +93,7 @@ export async function analyzeWithClaude(
     entities,
     citations,
     keyThemes,
-    model: "claude-sonnet-4-5-20250929",
+    model: MODEL,
     usage: [usage],
   };
 }

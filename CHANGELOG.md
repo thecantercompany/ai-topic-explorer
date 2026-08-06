@@ -2,6 +2,13 @@
 
 All notable changes to AI Topic Explorer will be documented in this file.
 
+## [2026-08-06]
+
+### Fixed
+- Claude streams are now accumulated as deltas arrive, so a query cancelled by the provider timeout returns the partial analysis instead of discarding it. Only a stream that produced no text at all fails
+- Raise the per-provider query timeout from 90s to 150s. A 4096-token generation with every expanded query running against every provider at once can legitimately exceed 90s, so healthy requests were being cancelled mid-stream and reported as failures
+- Timeout errors now name the provider and the subtopic query that timed out, and `provider_failure` reports include the query plus how many expanded queries were in flight
+
 ## [2026-07-22]
 
 ### Fixed
