@@ -4,7 +4,10 @@ import { PROMPT_TEMPLATE, parseStructuredData, extractRawText } from "./shared";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY || "");
 
-export async function analyzeWithGemini(query: string): Promise<AIResponse> {
+export async function analyzeWithGemini(
+  query: string,
+  signal?: AbortSignal
+): Promise<AIResponse> {
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
     safetySettings: [
@@ -18,7 +21,9 @@ export async function analyzeWithGemini(query: string): Promise<AIResponse> {
     } as Record<string, unknown>,
   });
 
-  const result = await model.generateContent(PROMPT_TEMPLATE(query));
+  // Pass the signal so a timed-out request is actually cancelled rather than
+  // left running in the background.
+  const result = await model.generateContent(PROMPT_TEMPLATE(query), { signal });
   const response = result.response;
   const responseText = response.text();
 

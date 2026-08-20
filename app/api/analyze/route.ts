@@ -37,6 +37,32 @@ type AnalyzeFn = (query: string, signal?: AbortSignal) => Promise<AIResponse>;
 const PROVIDER_TIMEOUT_MS = 150_000; // 150 seconds per provider query
 const EXPANSION_TIMEOUT_MS = 15_000; // 15 seconds for query expansion
 
+// Every expanded query fires at every provider, so a single analysis opens all
+// of a provider's subtopic queries in the same instant. That burst is what trips
+// Perplexity's rate limiter — the per-minute volume is small, but it arrives all
+// at once. Spacing the starts costs ~1.6s on the last query out of a 150s budget
+// (and the offset is added back to that query's deadline below) and lets a
+// burst-based limiter drain between requests. A limiter enforcing a strict
+// per-minute count is unaffected by spacing; the SDK's retry-after-aware
+// retries in lib/ai-clients cover that case.
+const QUERY_STAGGER_MS = 400;
+
+/** Abortable sleep — rejects rather than proceeding if the deadline fires first. */
+function sleep(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) return reject(new Error("Aborted before request start"));
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+    function onAbort() {
+      clearTimeout(timer);
+      reject(new Error("Aborted before request start"));
+    }
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
 /**
  * Run `task` with a timeout. On timeout the task's AbortSignal is fired so the
  * underlying request is actually cancelled instead of leaking in the background.
@@ -80,8 +106,61 @@ function categorizeError(err: unknown): string {
   if (message.includes("All") && message.includes("subtopic queries failed"))
     return "All subtopic queries failed";
 
+  // A TypeError et al. never came from the provider's API — it's our own bug
+  // handling a response. Report the detail, but don't put a raw JS message in
+  // front of the user.
+  if (
+    err instanceof TypeError ||
+    err instanceof RangeError ||
+    err instanceof ReferenceError
+  )
+    return "Could not process the provider's response";
+
   // Truncate long messages
   return message.length > 120 ? message.slice(0, 120) + "…" : message;
+}
+
+/**
+ * `categorizeError` collapses a failure to one short line for display, which
+ * throws away the detail that says *which* limit was hit. Pull the provider's
+ * own diagnostics off the SDK error so the report is actionable — a 429 with a
+ * `retry-after` is a rate limit that will clear, a 429 without one usually
+ * means a quota or credit ceiling that won't.
+ */
+function providerErrorDetail(err: unknown): Record<string, unknown> {
+  const detail: Record<string, unknown> = {};
+  if (typeof err !== "object" || err === null) return detail;
+
+  const candidate = err as {
+    status?: unknown;
+    headers?: unknown;
+    error?: unknown;
+  };
+
+  if (typeof candidate.status === "number") detail.status = candidate.status;
+
+  // SDK errors carry a Headers instance; guard because the shape isn't declared.
+  const headers = candidate.headers;
+  if (headers && typeof (headers as Headers).get === "function") {
+    const retryAfter =
+      (headers as Headers).get("retry-after") ??
+      (headers as Headers).get("retry-after-ms");
+    if (retryAfter) detail.retryAfter = retryAfter;
+  }
+
+  // The parsed response body usually holds the provider's own explanation.
+  const body = candidate.error;
+  if (typeof body === "string") {
+    detail.providerMessage = body.slice(0, 300);
+  } else if (typeof body === "object" && body !== null) {
+    const message = (body as { message?: unknown }).message;
+    detail.providerMessage =
+      typeof message === "string"
+        ? message.slice(0, 300)
+        : JSON.stringify(body).slice(0, 300);
+  }
+
+  return detail;
 }
 
 function getConfiguredProviders(): { provider: Provider; analyze: AnalyzeFn }[] {
@@ -257,13 +336,19 @@ export async function POST(request: NextRequest) {
           providers.map(async ({ provider, analyze }) => {
             try {
               const queryResults = await Promise.allSettled(
-                expandedQueries.map((query) =>
-                  withTimeout(
-                    (signal) => analyze(query, signal),
-                    PROVIDER_TIMEOUT_MS,
+                expandedQueries.map((query, i) => {
+                  const offset = i * QUERY_STAGGER_MS;
+                  return withTimeout(
+                    async (signal) => {
+                      if (offset > 0) await sleep(offset, signal);
+                      return analyze(query, signal);
+                    },
+                    // Add the stagger back so every query gets the same
+                    // generation budget regardless of its place in the queue.
+                    PROVIDER_TIMEOUT_MS + offset,
                     `${provider}: "${query.slice(0, 50)}"`
-                  )
-                )
+                  );
+                })
               );
 
               const successful = queryResults
@@ -292,6 +377,12 @@ export async function POST(request: NextRequest) {
                     stage: "subtopic_query",
                     query: f.query,
                     queryCount: expandedQueries.length,
+                    // Whether this failure actually cost the user anything: with
+                    // other queries fulfilled the provider still returns a
+                    // (thinner) result, which separates degraded from broken.
+                    succeededQueries: successful.length,
+                    failedQueries: failed.length,
+                    ...providerErrorDetail(f.reason),
                   },
                 });
               }
@@ -311,12 +402,17 @@ export async function POST(request: NextRequest) {
               const reason = categorizeError(err);
               console.error(`[${provider}] Provider failed: ${reason}`);
               reportError({
-      project: "ai-topic-explorer",
+                project: "ai-topic-explorer",
                 category: "provider_failure",
                 provider,
                 message: reason,
                 rawError: err,
-                context: { topic },
+                context: {
+                  topic,
+                  stage: "provider",
+                  queryCount: expandedQueries.length,
+                  ...providerErrorDetail(err),
+                },
               });
               emit({ stage: "provider_failed", provider, reason });
               throw err;

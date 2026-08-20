@@ -1,6 +1,11 @@
 import OpenAI from "openai";
 import type { AIResponse, TokenUsage, QuotedPhrase } from "@/lib/types";
-import { PROMPT_TEMPLATE, parseStructuredData, extractRawText } from "./shared";
+import {
+  PROMPT_TEMPLATE,
+  parseStructuredData,
+  extractRawText,
+  REQUEST_MAX_RETRIES,
+} from "./shared";
 
 const client = new OpenAI({
   apiKey: process.env.XAI_API_KEY,
@@ -38,17 +43,23 @@ function extractQuotedPhrases(text: string): QuotedPhrase[] {
   return [];
 }
 
-export async function analyzeWithGrok(query: string): Promise<AIResponse> {
-  const completion = await client.chat.completions.create({
-    model: "grok-3",
-    max_tokens: 8192,
-    messages: [
-      {
-        role: "user",
-        content: GROK_PROMPT_TEMPLATE(query),
-      },
-    ],
-  });
+export async function analyzeWithGrok(
+  query: string,
+  signal?: AbortSignal
+): Promise<AIResponse> {
+  const completion = await client.chat.completions.create(
+    {
+      model: "grok-3",
+      max_tokens: 8192,
+      messages: [
+        {
+          role: "user",
+          content: GROK_PROMPT_TEMPLATE(query),
+        },
+      ],
+    },
+    { signal, maxRetries: REQUEST_MAX_RETRIES }
+  );
 
   const responseText = completion.choices[0]?.message?.content || "";
 

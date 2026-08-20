@@ -4,6 +4,13 @@ import { useState, useRef, useEffect } from "react";
 
 const CHANGELOG: { date: string; changes: string[] }[] = [
   {
+    date: "Aug 20",
+    changes: [
+      "Fix a bug where one malformed field in an AI's response threw away that provider's entire analysis",
+      "Cancel timed-out provider requests properly and retry rate-limited ones, so fewer providers drop out of a comparison",
+    ],
+  },
+  {
     date: "Aug 6",
     changes: [
       "Keep partial Claude results when a response is cut short instead of dropping the whole query",

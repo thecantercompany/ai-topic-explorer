@@ -2,6 +2,16 @@
 
 All notable changes to AI Topic Explorer will be documented in this file.
 
+## [2026-08-20]
+
+### Fixed
+- Validate and normalize the model-authored JSON block (entities, citations, key themes) at the parse boundary. A response that drifted from the requested schema — people as bare strings, `theme` instead of `phrase`, a citation with no URL — reached the merge helpers untouched and threw `Cannot read properties of undefined (reading 'toLowerCase')`, discarding every successful subtopic query for that provider. Recoverable shapes are now coerced instead of dropped, so a malformed field costs one item rather than the whole provider
+- Pass the timeout's AbortSignal through the OpenAI, Gemini, Perplexity, and Grok clients. Only Claude honored it, so a timed-out query at the other four kept running to completion on the provider's side — still consuming rate-limit budget for a result nobody reads. This was the main self-inflicted source of Perplexity rate limiting
+- Give provider requests a retry budget of 4 (up from the SDK default of 2). The OpenAI-compatible SDKs honor `retry-after`, so a transient 429 now clears instead of killing the subtopic query
+- Stagger the subtopic query starts against each provider by 400ms instead of opening all of them in the same instant, and add the offset back to each query's deadline so the generation budget is unchanged
+- Internal errors (e.g. a TypeError handling a response) no longer surface a raw JavaScript message in the UI; they read "Could not process the provider's response" while the full detail goes to the error report
+- `provider_failure` reports now carry the provider's own diagnostics — HTTP status, `retry-after`, and the API's message — plus whether other subtopic queries succeeded, so a rate limit that will clear is distinguishable from a quota ceiling that won't
+
 ## [2026-08-06]
 
 ### Fixed
